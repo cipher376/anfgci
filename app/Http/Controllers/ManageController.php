@@ -1,0 +1,1640 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\address;
+use Illuminate\Http\Request;
+use SermonsTable;
+use DB;
+use App\photos;
+use App\Location;
+use App\profile;
+use App\churches;
+use App\pastors;
+use App\sermons;
+use App\resources;
+use App\audios;
+
+class ManageController extends Controller
+{
+    //
+
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+
+
+
+    public function index()
+    {
+        
+       
+       // $sermons= DB::table('sermons')->where('userID',7)->get(); 
+        $sermonsb = DB::table('sermons')->get();
+        $churches = DB::table('churches')->get();
+        $users = DB::table('users')->get();
+       
+        return view('manage.index',['sermonsb'=>$sermonsb],['churches'=>$churches],['users'=>$users]);
+    }
+
+
+    public function add_photo($id)
+    {
+        $churches = DB::select('select * from churches where id='.$id);
+        return view('manage.add_photo',['churches'=>$churches]);
+    }
+
+    public function add_premium()
+    {
+        
+        return view('manage.add_premium_video');
+    }
+
+    public function video()
+    {
+        
+        return view('manage.add_video');
+    }
+
+    public function allvideo()
+    {
+        
+        $videos = DB::select('select * from videos left join resources using (resourceID) where vidType="free" ');
+        return view('manage.video_list',['videos'=>$videos]);
+    }
+    public function premiumvideo(){
+
+        $videos = DB::select('select * from videos left join resources using(resourceID) where vidType="premium"');
+        return view('manage.premium_videos',['videos'=>$videos]);
+
+    }
+
+    public function sermons()
+    {
+
+    $sermons = DB::select('select * from sermons order by sermonID DESC');
+     
+    return view('manage.sermons',['sermons'=>$sermons]);
+
+    }
+
+    
+
+
+    public function listen_audio($id)
+    {
+       
+       //$audios= DB::table('audios')->where('audioID','!=', $id)->get(); 
+       $audios = DB::select('select * from audios left join photos using(photoID) where audioID !='.$id);
+       
+        $lists = DB::select('select * from audios left join resources using(resourceID) where audioID='.$id);
+        return view('manage.listen_audio',['lists'=>$lists],['audios'=>$audios]);
+    }
+
+    public function gallery($id)
+    {
+    $churches = DB::select('select * from churches where id='.$id);
+    //$photos = DB::select('select * from church_photos where church_id='.$id.' order by id DESC');
+    $photos= DB::table('church_photos')->where('church_id', $id)->paginate(6);
+     
+    return view('manage.photo_list',['photos'=>$photos],['churches'=>$churches]);
+
+    }
+
+
+    public function edit_photo($church_id,$photo_id)
+    {
+    $photos= DB::table('church_photos')->where('id', $photo_id)->get();  
+    $churches= DB::table('churches')->where('id', $church_id)->get(); 
+    return view('manage.edit_photo',['churches'=>$churches],['photos'=>$photos]);
+
+    }
+
+    public function update_photo($church_id,$photo_id)
+    {
+        $validator=$this->validate(request(),[
+            'title'=>'required|string',
+            'caption'=>'required|string',
+           // 'file' => 'required|mimes:jpeg,JPEG,png',
+            ],
+            [
+                'title.required'=>'Enter a title for the photo you want to upload ',
+                'caption.required'=>'Enter a caption for your photo  ',
+               // 'file.required'=>'Please Upload a photo ',
+                
+                
+                ]);
+
+                if(count(request()->all()) > 0){
+
+                    $file = request()->file('file');
+                    $title = request()->input('title');
+                    $caption= request()->input('caption');
+                   
+
+
+                    if(empty($file)){
+
+                        DB::table('church_photos')->where('id', $photo_id)->update(['title' => $title, 'caption' => $caption]);
+                    
+
+                        return redirect()->back()->withSuccess('Update succesful.');
+                    
+                    }
+                    else{ 
+                        
+                        ///// remove the existing file from folder /////////
+
+                    $existFile=""; 
+                    
+                    $photos = DB::select('select * from church_photos where id='.$photo_id);
+                    foreach($photos as $photo){
+            
+                        $existFile.=$photo->filename;
+            
+                    }
+
+                    if(file_exists(public_path('churchPhoto/'.$existFile))){
+
+                        unlink(public_path('churchPhoto/'.$existFile));
+                  
+                      }
+                   
+                  
+                    //////// move file to upload folder ////////////////
+
+            $original_name = strtolower(trim($file->getClientOriginalName()));
+            $fileName =  time().rand(100,999).$original_name;
+            $filePath = 'churchPhoto';
+            $file->move($filePath,$fileName);
+                
+
+            //////////////// update database with new information ///////
+
+            DB::table('church_photos')->where('id', $photo_id)
+            ->update(['title' => $title, 'caption' => $caption,'filename' => $fileName]);
+                     
+
+           return redirect()->back()->withSuccess('Update succesful.');
+
+
+
+
+
+
+                    }
+
+
+
+                }
+
+
+
+
+
+    }
+
+
+
+
+    public function add_sermons()
+    {
+        return view('manage.add_sermon');
+    }
+
+
+
+    public function store_photo($id)
+    {
+
+        $validator=$this->validate(request(),[
+            'title'=>'required|string',
+            'caption'=>'required|string',
+            'file' => 'required|mimes:jpeg,JPEG,png',
+            ],
+            [
+                'title.required'=>'Enter a title for the photo you want to upload ',
+                'caption.required'=>'Enter a caption for your photo  ',
+                'file.required'=>'Please Upload a photo ',
+                
+                
+                ]);
+
+
+                if(count(request()->all()) > 0){
+
+                    ////// move file to upload folder ////////////////
+
+                    $file = request()->file('file');
+                    $original_name = strtolower(trim($file->getClientOriginalName()));
+                    $fileName =  time().rand(100,999).$original_name;
+                    $filePath = 'churchPhoto';
+                    $file->move($filePath,$fileName);
+        
+                    //////////// create data //////////////////////
+        
+                    $title = request()->input('title');
+                    $caption = request()->input('caption');
+                    $church = request()->input('church');
+                    $files =  $fileName;
+                    $created= date('Y-m-d H:i:s');
+                    $data=array('title'=>$title,"caption"=>$caption,"filename"=>$files,"church_id"=>$church,'created_at'=>$created);
+                    DB::table('church_photos')->insert($data);
+        
+        
+                   ////////// redirect to url //////////////////////////
+        
+                   return redirect()->back()->withSuccess('Photo uploaded succesfully');
+                        
+                    }else{
+        
+        
+                         return redirect()->back()->withErrors($validator)->withInput();
+        
+                    }
+
+
+       
+    }
+
+
+
+    public function store_sermons()
+    {
+        //1.validate data
+        
+        $validator=$this->validate(request(),[
+        'topic'=>'required|string',
+        'author'=>'required|string',
+        'sermon'=>'required|string',
+        'file' => 'required|mimes:pdf,docx,doc',
+        ],
+        [
+            'topic.required'=>'Type in Topic of the Sermon you want to Upload ',
+            'author.required'=>'Type in Author of Sermon ',
+            'sermon.required'=>'Enter Sermon ',
+            'file.required'=>'Please Upload a PDF file ',
+            
+            
+            ]);
+
+            if(count(request()->all()) > 0){
+
+            ////// move file to upload folder ////////////////
+
+            $file = request()->file('file');
+            $fileName = $file->getClientOriginalName();
+            $filePath = 'upload';
+            $filePathdb='upload/'.$fileName;
+            $file->move($filePath,$fileName);
+            $user = auth()->user()->id;
+
+            //////////// create data //////////////////////
+
+           
+
+            $sermons = new sermons;
+
+            $resource = new resources;
+
+            $resource->title = request()->input('topic');
+            $resource->type = 4;
+            
+            $resource->note = request()->input('sermon');
+            $resource->url =$filePathdb;
+            $resource->isPublic= 0;
+            $resource->uploadby=auth()->user()->name;
+            $resource->artist = request()->input('author');
+           
+                   if($resource->save()){
+                    $sermons->topic = request()->input('topic');
+                    $sermons->author = request()->input('author');
+                    $sermons->userID = auth()->user()->id;
+                    $sermons->resourceID = $resource->id;
+                    $sermons->status = 0;
+                    $sermons->postedBy = auth()->user()->name;
+                    $sermons->save();
+
+                       
+
+                    }     
+                
+           
+
+
+           ////////// redirect to url //////////////////////////
+
+           return redirect()->back()->withSuccess('Sermon uploaded succesfully !');
+                
+            }else{
+
+
+                 return redirect()->back()->withErrors($validator)->withInput();
+
+            }
+                ///// move uploaded file to folder
+
+
+           
+
+            
+        //2. create data
+
+        //3. redirect url
+
+            
+    }
+
+
+
+    public function store_churches()
+    {
+        //1.validate data
+        
+        $validator=$this->validate(request(),[
+        'name'=>'required|string',
+        'est_date'=>'required|string',
+        'country'=>'required|string',
+        'state'=>'required|string',
+        'town'=>'required|string',
+        'note'=>'required|string',
+        
+        ],
+        [
+            'name.required'=>'Type in the name of branch you want to upload information for. ',
+            'est_date.required'=>'Enter the date of establishment. ',
+            'country.required'=>'Select country. ',
+            'state.required'=>'Enter the state.',
+            'phone.required'=>'Enter branch phone number. ',
+            'email.required'=>'Enter email. ',
+            'note.required'=>'Type a brief description  or any other information you want to add in the Note field. ',
+            
+            
+            ]);
+
+            if(count(request()->all()) > 0){
+            $myArray = [];
+            $user = auth()->user()->id;
+            $photo=json_encode($myArray);
+            $church=json_encode($myArray);
+
+            $address = new Location;
+
+            $address->country = request()->input('country');
+            $address->state = request()->input('state');
+            $address->town = request()->input('town');
+            $address->lat= "";
+            $address->lng= "";
+           
+           if($address->save()){
+
+
+
+            $churches = new churches;
+            $churches->name = request()->input('name');
+            $churches->pastor = auth()->user()->name;
+            $churches->userID = auth()->user()->id;
+            $churches->note= request()->input('note');
+            $churches->addressID = $address->id;
+            $churches->photoID = $photo;
+            $churches->churchserviceID = $church;
+            $churches->est_date = request()->input('est_date');
+            if($churches->save()){
+            
+
+
+            $pastors = new pastors;
+            $pastors->churchID = $churches->id;
+            $pastors->userID = auth()->user()->id;
+            $pastors->pastorRight =1;
+            $pastors->save();
+           
+
+           }
+          
+        }
+           
+
+           return redirect()->back()->withSuccess('Church created succesfully !');
+                
+            }else{
+
+
+                 return redirect()->back()->withErrors($validator)->withInput();
+
+            }
+              
+
+            
+    }
+
+
+
+public function update_user($id){
+
+     //1.validate data
+        
+     $validator=$this->validate(request(),[
+        'firstname'=>'required|string',
+        'lastname'=>'required|string',
+        'phone'=>'required|string',
+        'town'=>'required|string',
+        'state'=>'required|string',
+        'country'=>'required|string',
+        'role'=>'required|string',
+        
+        
+        ]);
+
+            if(count(request()->all()) > 0){
+
+               
+                $addressid="";
+
+
+                if(empty( request()->file('file'))){
+
+                    
+                    //$profiles = DB::select('select * from profile where id='.auth()->user()->id);
+                    $profiles =  DB::table('profile')->where('id',$id)->get();
+                    foreach($profiles as $profile){
+
+                        $addressid.=$profile->addressID;   
+                    }
+
+             DB::table('profile')->where('id',$id)->update(['firstname' => request()->input('firstname'), 'lastname' => request()->input('lastname'), 'phone' => request()->input('phone')]);
+             DB::table('address')->where('addressID', $addressid)->update(['town' => request()->input('town'), 'state' => request()->input('state'), 'country' => request()->input('country')]);
+             DB::table('users')->where('id', $id)->update(['role' => request()->input('role')]);
+                 
+                
+                    return redirect()->back()->withSuccess('Update succesful.');
+                
+                }
+                else{ 
+                    
+               
+            
+                }}
+
+}
+
+
+    public function store_users()
+    {
+        //1.validate data
+        
+        $validator=$this->validate(request(),[
+        'name'=>'required|string',
+        'email' =>'required|string|email|max:255|unique:users',
+        'password'=>'required|string',
+        'role'=>'required|string',
+        
+        ],
+        [
+            'name.required'=>'Type in the name of user you are creating account for ',
+            'password.required'=>'Enter Password',
+            'role.required'=>'Choose a role for user ',
+            
+            
+            ]);
+
+            if(count(request()->all()) > 0){
+
+            $user = auth()->user()->id;
+
+            //////////// create data //////////////////////
+
+            $name = request()->input('name');
+            $email= request()->input('email');
+            $password = $this->encrypt_decrypt(request()->input('password'),true);
+            $api_token = mt_rand(1000000000, 9999999999);
+            $role = request()->input('role');
+            $created= date('Y-m-d H:i:s');
+            
+            
+            $data=array('name'=>$name,"email"=>$email,"password"=>$password,"api_token"=>$api_token,"role"=>$role,"created_at"=>$created);
+            DB::table('users')->insert($data);
+
+
+           ////////// redirect to url //////////////////////////
+
+           return redirect()->back()->withSuccess('User account created succesfuly !');
+                
+            }else{
+
+
+                 return redirect()->back()->withErrors($validator)->withInput();
+
+            }
+              
+
+            
+    }
+
+
+
+
+
+
+    public function churches()
+    {
+
+        $churches = DB::select('select * from churches order by churchID DESC');
+        return view('manage.churches',['churches'=>$churches]);
+
+    }
+
+    public function add_church()
+    {
+        return view('manage.add_church');
+    }
+
+
+
+    public function users()
+    {
+        $users = DB::select('select * from profile LEFT JOIN users using(id) order by id DESC');
+        return view('manage.users',['users'=>$users]);
+    }
+
+
+    public function edit_users($id)
+    {
+
+   
+
+        $users = DB::select('select * from profile LEFT JOIN users USING(id) LEFT JOIN photos USING(photoID) LEFT JOIN address USING(addressID) where id='.$id);
+        return view('manage.edit_user',['users'=>$users]);
+        
+                
+    }
+
+
+
+
+    public function add_user()
+    {
+        return view('manage.add_user');
+    }
+
+
+
+
+    public function audios()
+    {
+       $audios = DB::select('select * from audios left join resources using(resourceID) ');
+       // $audios= DB::table('audios')->get();
+      
+        return view('manage.audios',['audios'=>$audios]);
+    }
+
+    public function add_audio()
+    {
+        return view('manage.add_audio');
+    }
+
+
+    public function show($id)
+    
+    {
+        $sermons = DB::select('select * from sermons LEFT JOIN resources USING (resourceID) where sermonID='.$id);
+     
+    return view('manage.view',['sermons'=>$sermons]);
+       
+    }
+
+    public static function showUsername($id){
+        $fullname="";
+        $names = DB::select('select * from users where id='.$id);
+        foreach($names as $name){
+
+        $fullname.=ucwords($name->name);
+
+        }
+       return $fullname;
+
+    }
+
+
+
+    public function showChurch($id)
+    
+    {
+        $churches = DB::select('select * from churches left join address using(addressID) where churchID='.$id);
+        $photos= DB::table('church_photos')->where('church_id', $id)->get();  
+       
+        
+        
+    return view('manage.view_church',['churches'=>$churches],['photos'=>$photos]);
+       
+    }
+
+
+    public static function showServices($id){
+
+    $services= DB::table('church_services')->where('churchID', $id)->paginate(4); 
+    return $services;
+
+    }
+
+
+
+
+    public function edit($id)
+    
+    {
+        $sermons = DB::select('select * from sermonS left join resources using(resourceID) where sermonID='.$id);
+     
+    return view('manage.edit_sermon',['sermons'=>$sermons]);
+       
+    }
+
+
+    public function churchEdit($id)
+    
+    {
+        $churches = DB::select('select * from churches LEFT JOIN address USING(addressID) where churchID='.$id);
+     
+     
+    return view('manage.edit_church',['churches'=>$churches]);
+       
+    }
+
+
+    public function destroy($id)
+    
+    {
+        $resid="";
+        $url="";
+        
+        
+        $sds = DB::select('select * from sermons where sermonID='.$id);
+        foreach($sds as $sd){
+
+            $resid=$sd->resourceID;   
+        }
+
+        $res = DB::select('select * from resources where resourceID='.$resid.'');
+        foreach($res as $re){
+
+            $url=$re->url;   
+        }
+
+
+        if(file_exists(public_path($url))){
+
+            unlink(public_path($url));
+      
+          }
+
+        $sermons = DB::delete('delete from sermons where sermonID='.$id);
+        $resources = DB::delete('delete from resources where resourceID='.$resid);
+        return redirect()->back()->withSuccess('one record deleted succesfuly.');
+   // return view('manage.edit_sermon',['sermons'=>$sermons]);
+       
+    }
+
+
+    public function destroyChurch($id)
+    
+    {
+        $sermons = DB::delete('delete from churches where churchID='.$id);
+        return redirect()->back()->withSuccess('one record deleted succesfuly.');
+   // return view('manage.edit_sermon',['sermons'=>$sermons]);
+       
+    }
+
+
+    public function delete_photo($id)
+    
+    {
+        $existFile="";
+        $photos= DB::table('church_photos')->where('id', $id)->get(); 
+        foreach($photos as $photo){
+
+
+        $existFile.=$photo->filename;
+            
+                    }
+
+                    if(file_exists(public_path('churchPhoto/'.$existFile))){
+
+                        unlink(public_path('churchPhoto/'.$existFile));
+                  
+                      }
+
+        DB::table('church_photos')->where('id', $id)->delete();
+        return redirect()->back()->withSuccess('one photo deleted succesfuly.');
+   // return view('manage.edit_sermon',['sermons'=>$sermons]);
+       
+    }
+
+
+    public function audioallow(Request $request){
+        switch ($request->input('action')) {
+            case 'activate':
+                
+    
+                if(isset($_POST['audio'])){
+                    if (is_array($_POST['audio'])) {
+                         foreach($_POST['audio'] as $value){
+                            DB::table('audios')->where('audioID', $value)->update(['status' => '1']);
+                         }
+    
+                         return redirect()->back()->withSuccess('Audio set to active mode sucessfuly.');
+    
+                      } else {
+                        $value = $_POST['audio'];
+                        DB::table('audios')->where('audioID', $value)->update(['status' => '1']);
+                        return redirect()->back()->withSuccess('Audio set to active mode sucessfuly.');
+                   }
+               }else{
+    
+    
+                return redirect()->back()->withErrors('Please check atleast one Audio to activate');
+               }
+    
+                       
+    
+    
+                break;
+    
+            case 'deactivate':
+                
+                if(isset($_POST['audio'])){
+                    if (is_array($_POST['audio'])) {
+                         foreach($_POST['audio'] as $value){
+                            DB::table('audios')->where('audioID', $value)->update(['status' => '0']);
+                         }
+    
+                         return redirect()->back()->withSuccess('Audios set to inactive mode sucessfuly.');
+    
+                      } else {
+                        $value = $_POST['audio'];
+                        DB::table('audios')->where('audioID', $value)->update(['status' => '0']);
+                        return redirect()->back()->withSuccess('Audio set to inactive mode sucessfuly.');
+                   }
+               }else{
+    
+    
+                return redirect()->back()->withErrors('Please check atleast one audio to deactivate');
+               }
+    
+    
+                break;
+    
+            
+        }
+    }
+
+
+    public function delete_users($id)
+    
+    {
+        
+
+        DB::table('users')->where('id', $id)->delete();
+        DB::table('profile')->where('id', $id)->delete();
+        return redirect()->back()->withSuccess('one user deleted succesfuly.');
+   // return view('manage.edit_sermon',['sermons'=>$sermons]);
+       
+    }
+
+
+    public function delete_audio($id)
+    
+{
+    
+   
+
+
+    $imgFile="";
+    $audioFile=""; 
+    $photoid="";
+        
+    $audios = DB::select('select * from audios left join resources using(resourceID) where audioID='.$id);
+    foreach($audios as $audio){
+
+        $audioFile=$audio->url;
+        $photoid=$audio->photoID;
+
+    }
+
+
+    $covers = DB::select('select * from  photos where photoID='.$photoid);
+    foreach($covers as $cover){
+
+        $imgFile=$cover->url;
+        
+        
+
+    }
+
+
+
+    if(file_exists(public_path($imgFile))){
+
+        unlink(public_path($imgFile));
+  
+      }
+
+
+      if(file_exists(public_path($audioFile))){
+
+        unlink(public_path($audioFile));
+  
+      }
+
+      DB::table('audios')->where('audioID', $id)->delete();
+    return redirect()->back()->withSuccess('one audio deleted succesfuly.');
+   
+}
+
+    public function delete_service($id)
+    
+    {
+        
+
+        DB::table('church_services')->where('id', $id)->delete();
+        return redirect()->back()->withSuccess('service deleted succesfuly.');
+   // return view('manage.edit_sermon',['sermons'=>$sermons]);
+       
+    }
+
+
+
+    public function delete_video($id)
+    
+    {
+        
+$resid="";
+$existFile="";
+       
+
+   $videos= DB::table('videos')->where('videoID', $id)->get();
+        foreach($videos as $video){
+
+        $resid=$video->resourceID;
+
+        }
+
+   $resources= DB::table('resources')->where('resourceID', $resid)->get(); 
+   foreach($resources as $resource){
+
+       $existFile=$resource->url;
+
+   }
+
+   if(file_exists(public_path($existFile))){
+
+       unlink(public_path($existFile));
+ 
+     }
+
+
+     DB::table('videos')->where('videoID', $id)->delete();
+     DB::table('resources')->where('resourceID', $resid)->delete();
+     return redirect()->back()->withSuccess('video deleted succesfuly.');
+
+       
+    }
+
+
+    public function videopostallow(Request $request){
+        switch ($request->input('action')) {
+            case 'activate':
+                
+    
+                if(isset($_POST['video'])){
+                    if (is_array($_POST['video'])) {
+                         foreach($_POST['video'] as $value){
+                            DB::table('videos')->where('videoID', $value)->update(['status' => '1']);
+                         }
+    
+                         return redirect()->back()->withSuccess('Video set to active mode sucessfuly.');
+    
+                      } else {
+                        $value = $_POST['video'];
+                        DB::table('videos')->where('videoID', $value)->update(['status' => '1']);
+                        return redirect()->back()->withSuccess('Video set to active mode sucessfuly.');
+                   }
+               }else{
+    
+    
+                return redirect()->back()->withErrors('Please check atleast one video to activate');
+               }
+    
+                       
+    
+    
+                break;
+    
+            case 'deactivate':
+                
+                if(isset($_POST['video'])){
+                    if (is_array($_POST['video'])) {
+                         foreach($_POST['video'] as $value){
+                            DB::table('videos')->where('videoID', $value)->update(['status' => '0']);
+                         }
+    
+                         return redirect()->back()->withSuccess('video set to inactive mode sucessfuly.');
+    
+                      } else {
+                        $value = $_POST['video'];
+                        DB::table('videos')->where('videoID', $value)->update(['status' => '0']);
+                        return redirect()->back()->withSuccess('Video set to inactive mode sucessfuly.');
+                   }
+               }else{
+    
+    
+                return redirect()->back()->withErrors('Please check atleast one video to deactivate');
+               }
+    
+    
+                break;
+    
+            
+        }
+    }
+
+
+    
+
+    public function delete_free_video($id)
+    
+    {
+        $resourceID="";
+        $videos = DB::select('select * from videos where videoID='.$id);
+        foreach($videos as $video){
+
+            $resourceID=$video->resourceID;
+        }
+       
+        DB::table('videos')->where('videoID', $id)->delete();
+        DB::table('resources')->where('resourceID',  $resourceID)->delete();
+
+        return redirect()->back()->withSuccess('video deleted succesfuly.');
+   // return view('manage.edit_sermon',['sermons'=>$sermons]);
+       
+    }
+
+    public function update($id)
+    
+    {
+        $validator=$this->validate(request(),[
+            'topic'=>'required|string',
+            'author'=>'required|string',
+            'sermon'=>'required|string',
+            //'file' => 'required|mimes:pdf,docx,doc',
+            ],
+            [
+                'topic.required'=>'Type in Topic of the Sermon you want to Upload ',
+                'author.required'=>'Type in Author of Sermon ',
+                'sermon.required'=>'Enter Sermon ',
+               // 'file.required'=>'Please Upload a PDF file ',
+                
+                
+                ]);
+
+                if(count(request()->all()) > 0){
+
+                    $file = request()->file('file');
+                    $topic = request()->input('topic');
+                    $author= request()->input('author');
+                    $sermon= request()->input('sermon');
+
+                    $resid="";
+                    if(empty($file)){
+                        
+                        DB::table('sermons')->where('sermonID', $id)->update(['topic' => $topic, 'author' => $author]);
+                        
+                        $sermonsups = DB::select('select * from sermons where sermonID='.$id);
+                        foreach($sermonsups as $sermonsup){
+
+                            $resid=$sermonsup->resourceID;
+                        }
+                        DB::table('resources')->where('resourceID',  $resid)->update(['title' => $topic, 'artist' => $author,'note' => $sermon]);
+                        
+                        //$sermons = DB::select('select * from sermons where sermonID='.$id);
+     
+                        //return view('manage.edit_sermon',['sermons'=>$sermons]);
+
+                        return redirect()->back()->withSuccess('Update succesful.');
+                    
+                    }
+                    else{ 
+                        
+                        ///// remove the existing file from folder /////////
+
+                    $existFile=""; 
+
+                    $sermonsups = DB::select('select * from sermons where sermonID='.$id);
+                    foreach($sermonsups as $sermonsup){
+
+                        $resid=$sermonsup->resourceID;
+                    }
+                    
+                   
+                   $resources= DB::table('resources')->where('resourceID', $resid)->get(); 
+                    foreach($resources as $resource){
+            
+                        $existFile=$resource->url;
+            
+                    }
+
+                    if(file_exists(public_path($existFile))){
+
+                        unlink(public_path($existFile));
+                  
+                      }
+                   
+                  
+                    //////// move file to upload folder ////////////////
+
+            $original_name = strtolower(trim($file->getClientOriginalName()));
+            $fileName =  time().rand(100,999).$original_name;
+            $filePath = 'upload';
+            $filePathdb = '/upload/'.$fileName;
+            $file->move($filePath,$fileName);
+                
+            $sermon2= request()->input('sermon');
+            //////////////// update database with new information ///////
+
+           DB::table('resources')->where('resourceID', $resid)->update(['title'=>$topic, 'artist' => $author,'note' =>$sermon2,'url'=> $filePathdb]);
+                              
+            
+
+           return redirect()->back()->withSuccess('Update succesful.');
+
+
+
+
+
+
+                    }
+
+
+
+                }
+       
+    }
+
+
+function addService($id){
+
+   
+                    $title= request()->input('title');
+                    $month= request()->input('month');
+                    $time= request()->input('time');
+                    $created= date('Y-m-d H:i:s');
+
+                    $data=array('title'=>$title,"month"=>$month,"time"=>$time,"church_id"=>$id,"created_at"=>$created);
+                    DB::table('church_services')->insert($data);
+                    return redirect()->back()->withSuccess('Update succesful.');
+
+
+                      
+
+}
+
+
+    public function churchUpdate($id)
+    
+    {
+        $validator=$this->validate(request(),[
+            'name'=>'required|string',
+            'est_date'=>'required|string',
+            'country'=>'required|string',
+            'state'=>'required|string',
+            'town'=>'required|string',
+            'note'=>'required|string',
+            
+            ],
+            [
+                'name.required'=>'Type in the name of church branch you want to upload information for ',
+                'est_date.required'=>'Enter the date of establishment ',
+                'country.required'=>'Select country',
+                'state.required'=>'Enter the state where church is located',
+                'town.required'=>'Enter the town where church is located',
+                'note.required'=>'Type a brief description  or any other information you want to add in the Note field ',
+                
+                
+                ]);
+
+                if(count(request()->all()) > 0){
+
+                   
+                    $name = request()->input('name');
+                    $est_date= request()->input('est_date');
+                    $country = request()->input('country');
+                    $state= request()->input('state');
+                    $town= request()->input('town');
+                    $pastor = request()->input('pastor');
+                    $note= request()->input('note');
+
+
+                        
+                    $pullchurchs = DB::select('select * from churches where churchID='.$id);
+                    foreach($pullchurchs as $pullchurch){
+
+                        DB::table('address')->where('addressID', $pullchurch->addressID)->update(['country' =>request()->input('country'), 'state' => request()->input('state'),'town' => request()->input('town')]);
+                    
+
+                    }
+
+                    DB::table('churches')->where('churchID', $id)->update(['name' => $name, 'est_date' => $est_date,'note' => $note]);
+                   
+                    $churches = DB::select('select * from churches where churchID='.$id);
+                    return redirect()->back()->withSuccess('Update succesful.');
+                    
+                  
+                   
+
+
+
+                }
+       
+    }
+
+
+    public function store_audio()    
+    {
+        $validator=$this->validate(request(),[
+            'title'=>'required|string',
+            'artist'=>'required|string',
+            'note'=>'required|string',
+            'type'=>'required|string',
+            'imgfile'=>'required|mimes:jpeg,JPEG,png',
+            'audiofile'=>'required|file:mp3,wav,MP3',
+           
+            
+            
+            ],
+            [
+                'title.required'=>'Enter audio title ',
+                'artist.required'=>'Enter artist name ',
+                'note.required'=>'Enter a note for audio ',
+                'imgfile.required'=>'Upload photo for audio',
+                'audiofile.required'=>'Upload an audio',
+                
+                
+                ]);
+
+                if(count(request()->all()) > 0){
+
+                   
+                    $resourceid="";
+                    $imgfile= request()->file('imgfile');
+                    $audiofile= request()->file('audiofile');
+
+                
+
+                      //////// move imgfile to photos folder ////////////////
+
+            $original_filename = strtolower(trim($imgfile->getClientOriginalName()));
+            $fileName =  time().rand(100,999).$original_filename;
+            $filePath = 'photos';
+            $filePathdb = '/photos/'.$fileName;
+            $imgfile->move($filePath,$fileName);
+
+             //////// move audiofile to audios folder ////////////////
+
+             $original_audioname = strtolower(trim($audiofile->getClientOriginalName()));
+             $fileName2 =  time().rand(100,999).$original_audioname;
+             $filePath2 = 'audios';
+             $filePath2db = '/audios/'.$fileName2;
+             $audiofile->move($filePath2,$fileName2);
+
+
+             $resource = new resources;
+
+             $resource->title = request()->input('title');
+             $resource->type = 2;
+             
+             $resource->note = request()->input('note');
+             $resource->url =$filePath2db;
+             $resource->isPublic= 0;
+             $resource->uploadby=auth()->user()->name;
+             $resource->artist = request()->input('artist');
+             if($resource->save()){
+                $resourceid=$resource->id;
+
+                $photos = new photos();
+
+                        $photos->type= '4';
+                        $photos->title= request()->input('title');
+                        $photos->caption= "cover photo";
+                        $photos->url=$filePathdb;
+                       if($photos->save()){
+
+
+
+                        $audios = new audios;
+
+                        $audios->resourceID=$resourceid;
+                        $audios->userID=auth()->user()->id;
+                        $audios->audioType=request()->input('type');
+                        $audios->photoID=$photos->id;
+                        $audios->status=0;
+                        $audios->save();
+     
+
+                return redirect()->back()->withSuccess('Audio upload succesful.');
+
+
+             }
+                    
+                  
+                   
+
+
+
+                }
+       
+    }
+
+}
+
+
+
+    public function store_premium_videos()    
+    {
+        $validator=$this->validate(request(),[
+            'title'=>'required|string',
+            'author'=>'required|string',
+            'note'=>'required|string',
+            'videofile'=>'required|file:mp4',
+           
+            
+            
+            ],
+            [
+                'title.required'=>'Enter video title ',
+                'author.required'=>'Enter author name ',
+                'note.required'=>'Enter a note for audio ',
+                'videofile.required'=>'Upload a video',
+                
+                
+                ]);
+
+                if(count(request()->all()) > 0){
+
+                   
+                    $title = request()->input('title');
+                    $author = request()->input('author');
+                    $note= request()->input('note');
+                    $videofile= request()->file('videofile');
+                    $created= date('Y-m-d H:i:s');
+
+             //////// move videofile to audios folder ////////////////
+
+             $original_videoname = strtolower(trim($videofile->getClientOriginalName()));
+             $fileName =  time().rand(100,999).$original_videoname;
+             $filePath = 'premiumVideos';
+             $filePathdb = '/premiumVideos/'.$fileName;
+             $videofile->move($filePath,$fileName);
+
+             $resource = new resources;
+
+             $resource->title = request()->input('title');
+             $resource->type = 1;
+             
+             $resource->note = request()->input('note');
+             $resource->url =$filePathdb;
+             $resource->isPublic= 0;
+             $resource->uploadby=auth()->user()->name;
+             $resource->artist = request()->input('author');
+             if($resource->save()){
+
+
+             $data=array('resourceID'=>$resource->id,'vidType'=>"premium","userID"=>auth()->user()->id,"status"=>'0',"created_at"=>$created);
+             DB::table('videos')->insert($data);
+     
+
+                return redirect()->back()->withSuccess('upload succesful.');
+                    
+             }    
+                   
+
+
+
+                }
+       
+    }
+
+    public function allow_user(Request $request){
+
+        switch ($request->input('action')) {
+            case 'activate':
+                
+    
+                if(isset($_POST['user'])){
+                    if (is_array($_POST['user'])) {
+                         foreach($_POST['user'] as $value){
+                            DB::table('users')->where('id', $value)->update(['role' => 'manage-sub']);
+                         }
+    
+                         return redirect()->back()->withSuccess('user set to active mode sucessfuly.');
+    
+                      } else {
+                        $value = $_POST['user'];
+                        DB::table('users')->where('id', $value)->update(['role' => 'manage-sub']);
+                        return redirect()->back()->withSuccess('user set to active mode sucessfuly.');
+                   }
+               }else{
+    
+    
+                return redirect()->back()->withErrors('Please check atleast one user to activate');
+               }
+    
+                       
+    
+    
+                break;
+    
+            case 'deactivate':
+                
+                if(isset($_POST['user'])){
+                    if (is_array($_POST['user'])) {
+                         foreach($_POST['user'] as $value){
+                            DB::table('users')->where('id', $value)->update(['role' => 'user']);
+                         }
+    
+                         return redirect()->back()->withSuccess('user set to inactive mode sucessfuly.');
+    
+                      } else {
+                        $value = $_POST['user'];
+                        DB::table('users')->where('id', $value)->update(['role' => 'user']);
+                        return redirect()->back()->withSuccess('User set to inactive mode sucessfuly.');
+                   }
+               }else{
+    
+    
+                return redirect()->back()->withErrors('Please check atleast one user to deactivate');
+               }
+    
+    
+                break;
+    
+            
+        }
+
+    }
+
+
+    public function postallow(Request $request){
+    switch ($request->input('action')) {
+        case 'activate':
+            
+
+            if(isset($_POST['sermon'])){
+                if (is_array($_POST['sermon'])) {
+                     foreach($_POST['sermon'] as $value){
+                        DB::table('sermons')->where('sermonID', $value)->update(['status' => '1']);
+                     }
+
+                     return redirect()->back()->withSuccess('Sermon set to active mode sucessfuly.');
+
+                  } else {
+                    $value = $_POST['sermon'];
+                    DB::table('sermons')->where('sermonID', $value)->update(['status' => '1']);
+                    return redirect()->back()->withSuccess('Sermon set to active mode sucessfuly.');
+               }
+           }else{
+
+
+            return redirect()->back()->withErrors('Please check atleast one sermon to activate');
+           }
+
+                   
+
+
+            break;
+
+        case 'deactivate':
+            
+            if(isset($_POST['sermon'])){
+                if (is_array($_POST['sermon'])) {
+                     foreach($_POST['sermon'] as $value){
+                        DB::table('sermons')->where('sermonID', $value)->update(['status' => '0']);
+                     }
+
+                     return redirect()->back()->withSuccess('Sermon set to inactive mode sucessfuly.');
+
+                  } else {
+                    $value = $_POST['sermon'];
+                    DB::table('sermons')->where('sermonID', $value)->update(['status' => '0']);
+                    return redirect()->back()->withSuccess('Sermon set to inactive mode sucessfuly.');
+               }
+           }else{
+
+
+            return redirect()->back()->withErrors('Please check atleast one sermon to deactivate');
+           }
+
+
+            break;
+
+        
+    }
+}
+
+
+public function audioMultipleDelete(Request $request){
+
+    switch ($request->input('action')) {
+        case 'deleteall':
+
+    if(isset($_POST['audio'])){
+
+
+
+        if (is_array($_POST['audio'])) {
+             foreach($_POST['audio'] as $value){
+
+                $imgFile="";
+                $audioFile=""; 
+                    
+                $audios = DB::select('select * from audios where id='.$value);
+                foreach($audios as $audio){
+        
+                    $imgFile.=$audio->imgname;
+                    $audioFile.=$audio->audioname;
+        
+                }
+
+                if(file_exists(public_path('photos/'.$imgFile))){
+
+                    unlink(public_path('photos/'.$imgFile));
+              
+                  }
+
+
+                  if(file_exists(public_path('audios/'.$audioFile))){
+
+                    unlink(public_path('audios/'.$audioFile));
+              
+                  }
+
+
+                $audios = DB::delete('delete from audios where id='.$value);
+             }
+
+             return redirect()->back()->withSuccess('Audio deleted sucessfuly.');
+
+          } else {
+            $value = $_POST['audio'];
+            $audios = DB::delete('delete from audios where id='.$value);
+            return redirect()->back()->withSuccess('Audio deleted sucessfuly.');
+       }
+   }else{
+
+
+    return redirect()->back()->withErrors('Please check atleast one audio to delete');
+   }
+
+break;
+    }
+}
+     //1.validate data
+        
+    public function searchquery(Request $request){
+        $searchterm = $request->input('search-term');
+        
+        $searchresults = DB::table('sermons')->where('topic', 'like', $searchterm.'%')->get();
+
+        return view('manage.search',['sermons'=>$searchresults]);
+
+
+
+    }
+
+  public static function showtopics(){
+    $messagesb = DB::select('select * from sermons left join resources using(resourceID) ');
+    
+    return $messagesb;
+
+  } 
+  
+  
+  public function add_video()
+  {
+
+      $validator=$this->validate(request(),[
+          'title'=>'required|string',
+          'artist'=>'required|string',
+          'note' => 'required|string',
+          'id' => 'required|string',
+          ],
+          [
+              'title.required'=>'Enter a title for video. ',
+              'artist.required'=>'Enter name for authur.  ',
+              'note.required'=>'Enter name for note.  ',
+              'id.required'=>'enter video ID. ',
+              
+              
+              ]);
+
+
+              if(count(request()->all()) > 0){
+
+                $title = request()->input('title');
+                $artist = request()->input('artist');
+                $note= request()->input('note');
+                $vid= request()->input('id');
+                $created= date('Y-m-d H:i:s');
+
+
+                $resource = new resources;
+
+                        $resource->title = request()->input('title');
+                        $resource->type = 1;
+                        
+                        $resource->note = request()->input('note');
+                        $resource->url =request()->input('id');
+                        $resource->isPublic= 0;
+                        $resource->uploadby=auth()->user()->name;
+                        $resource->artist = request()->input('artist');
+                        if($resource->save()){
+
+                $data=array('resourceID'=>$resource->id,'vidType'=>"free","userID"=>auth()->user()->id,"status"=>'0');
+                DB::table('videos')->insert($data);
+                return redirect()->back()->withSuccess('Upload sucessful.');
+                        }
+               
+
+              }}
+
+ public static function allVideos(){
+
+                
+                $videos= DB::table('videos')->get(); 
+    
+                return $videos;
+
+              }
+
+
+public static function allAudios(){
+
+    $audios= DB::table('audios')->get(); 
+    
+    return $audios;
+    
+           
+
+              }
+
+
+              public static function showCountries(){
+
+                $countries= DB::table('countries')->get(); 
+                
+                return $countries;
+                
+                       
+            
+                          }
+
+
+
+     public static function encrypt_decrypt ($data, $encrypt) {
+                            if ($encrypt == true) {
+                                $output = base64_encode (convert_uuencode ($data));
+                            } else {
+                                $output = convert_uudecode (base64_decode ($data));
+                            }
+                            return $output;
+                            
+                            
+                            
+                        }
+
+    public function profile($id){
+
+        $users = DB::select('select * from profile LEFT JOIN users USING(id) LEFT JOIN photos USING(photoID) LEFT JOIN address USING(addressID) where id='.$id);
+       
+        return view('manage.profile_view',['users'=>$users]);  
+
+    }
+
+
+    
+    public static function showAudiotitle($id){
+        $resourcetitle="";
+    
+        $resources = DB::select('select * from  resources where resourceID ='.$id);
+        foreach($resources as $resource){
+    
+          
+               $resourcetitle=$resource->artist;
+    
+           }
+          
+    
+    
+    return $resourcetitle;
+    }
+}
