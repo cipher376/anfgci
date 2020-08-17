@@ -405,7 +405,7 @@ class PastorController extends Controller
     public function edit($id)
     
     {
-        $sermons = DB::select('select * from sermonS left join resources using(resourceID) where sermonID='.$id);
+        $sermons = DB::select('select * from sermons left join resources using(resourceID) where sermonID='.$id);
      
      
     return view('pastor.edit_sermon',['sermons'=>$sermons]);
@@ -416,9 +416,23 @@ class PastorController extends Controller
 
     public function churches()
     {
+        $pastorRight="";
+        //$pastors = DB::select('select * from pastors where id='.auth()->user()->id);
+        $pastors= DB::table('pastors')->where('userID', auth()->user()->id)->get(); 
+        if($pastors->count()>0){
 
-        $churches = DB::select('select * from churches where userID='.auth()->user()->id.' order by churchID DESC');
-        return view('pastor.churches',['churches'=>$churches]);
+            foreach($pastors as $pastor){
+
+                $pastorRight=$pastor->pastorRight;
+            }
+
+        $churches = DB::select('select * from pastors left join churches using(churchID) where userID='.auth()->user()->id.' order by churchID DESC');
+      
+        }else{
+            $churches=array();;
+
+        }
+          return view('pastor.churches',['churches'=>$churches]);
 
     }
 
@@ -433,6 +447,8 @@ class PastorController extends Controller
     
     {
         $sermons = DB::delete('delete from churches where churchID='.$id);
+        $pastor = DB::delete('delete from pastors where churchID='.$id);
+        
         return redirect()->back()->withSuccess('one record deleted succesfuly.');
    // return view('manage.edit_sermon',['sermons'=>$sermons]);
        
@@ -606,7 +622,7 @@ class PastorController extends Controller
     }
     function addService($id){
 
-        $dbchid=[];
+        
         
         
 
@@ -620,28 +636,7 @@ class PastorController extends Controller
         $church_services->postedBy =auth()->user()->id;
         $church_services->sermonID = "";
         $church_services->created_at = $created;
-        if($church_services->save()){
-
-        $churches = DB::select('select * from churches where churchID='.$id);
-        foreach($churches  as $church){
-
-        $dbchid[]= json_decode($church->churchserviceID,true);
-
-
-        }
-        
-       array_push($dbchid, $church_services->id);
-       
-
-      
-       
-
-        }
-       
-        DB::table('churches')->where('churchID', $id)->update(['churchserviceID'=>json_encode($dbchid)]);
-          
-        //$data=array('title'=>$title,"month"=>$month,"time"=>$time,"postedBy"=>auth()->user()->id,"churchID"=>$id,"created_at"=>$created);
-        //DB::table('church_services')->insert($data);
+        $church_services->save();
 
 
        return redirect()->back()->withSuccess('Update succesful.');

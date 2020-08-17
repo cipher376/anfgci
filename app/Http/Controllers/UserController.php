@@ -71,7 +71,7 @@ class UserController extends Controller
                         $photos->type= '1';
                         $photos->title= 'profile photo';
                         $photos->caption= 'profile photo';
-                        $photos->url='/profilePhoto/'.$fileName;
+                        $photos->url=asset('/profilePhoto/'.$fileName);
                         if($photos->save()){
 
 

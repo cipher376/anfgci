@@ -55,308 +55,87 @@
 @endif
 
 
-
-
-              
-               
-                <div class="intro-y flex flex-col sm:flex-row items-center mt-8">
-                    <h2 class="text-lg font-medium mr-auto" style="font-size:25px">
+<div class="intro-y flex items-center mt-8">
+                    <h2 class="text-lg font-medium mr-auto">
                     {{ ucfirst($church->name) }}
                     </h2>
-                    <div class="w-full sm:w-auto flex mt-4 sm:mt-0">
-                       <a href="/manage/churches/gallery/2">
-                            <button class="button text-white bg-theme-1 shadow-md mr-2">Photo Archive</button>
-</a>
-                        <div class="dropdown relative ml-auto sm:ml-0">
-                            <button class="dropdown-toggle button px-2 box text-gray-700">
-                                <span class="w-5 h-5 flex items-center justify-center"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus w-4 h-4"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> </span>
-                            </button>
-                            <div class="dropdown-box mt-10 absolute w-40 top-0 right-0 z-20">
-                                <div class="dropdown-box__content box p-2">
-                                    <a href="/manage/churches/photo/{{ $church->churchID }}" class="flex items-center block p-2 transition duration-300 ease-in-out bg-white hover:bg-gray-200 rounded-md"> <i data-feather="image" class="breadcrumb__icon"></i>  New Photo</a>
-                                    <a href="/manage/churches/gallery/{{ $church->churchID }}" class="flex items-center block p-2 transition duration-300 ease-in-out bg-white hover:bg-gray-200 rounded-md"> <i data-feather="users" class="breadcrumb__icon"></i>  Church Photos </a>
-                                    <a href="" class="flex items-center block p-2 transition duration-300 ease-in-out bg-white hover:bg-gray-200 rounded-md"> <i data-feather="list" class="breadcrumb__icon"></i>  Add Services </a>
-                               
-                                
-                                </div>
-                            </div>
-                        </div>
+                </div>
+                <div class="grid grid-cols-12 gap-6">
+                    <!-- BEGIN: Profile Menu -->
+                    <div class="col-span-12 lg:col-span-4 xxl:col-span-3 flex lg:block flex-col-reverse">
+
+                    
+         @include('layouts.Church_Sidebar')
+                       
                     </div>
-                </div>
-       
-
-                <div class="intro-y news p-5 box mt-8">
-
-                
-                    <!-- BEGIN: Blog Layout -->
-                   
-                    
-                   
-                    <div class="intro-y text-gray-700 mt-3 text-xs sm:text-sm">
-                         <a class="text-theme-1" href="">Date Posted</a> <span class="mx-1">•</span>  {{ $church->created_at }} 
-                        
-                        
-                        </div>
-
-<br/>
-                    <div class="intro-y text-justify leading-relaxed">
-
-                    
-                   
-
-                   {{ strip_tags(htmlspecialchars_decode($church->note)) }}
-                              </div>
-
-
-
-                              <div class="intro-y text-justify leading-relaxed">
-
-                    
-                   
-<div class="intro-y text-justify leading-relaxed">
-
-          <br/>       
-<div class="font-extrabold">Country</div>
-                             </div>
-          </div>
-
-          <div class="intro-y text-justify leading-relaxed">
-
-                   
-                  
-
-{{ strip_tags(htmlspecialchars_decode($church->country)) }}
-          </div>
-
-
-
-
-                              <div class="intro-y text-justify leading-relaxed">
-
-                    
-                   
- <div class="intro-y text-justify leading-relaxed">
-
-           <br/>       
- <div class="font-extrabold">State </div>
-                              </div>
-           </div>
-
-           <div class="intro-y text-justify leading-relaxed">
-
-                    
-                   
-
-{{ strip_tags(htmlspecialchars_decode($church->state)) }}
-           </div>
-
-
-
-           <div class="intro-y text-justify leading-relaxed">
-
-                    
-                   
-<div class="intro-y text-justify leading-relaxed">
-
-          <br/>       
-<div class="font-extrabold">Town </div>
-                             </div>
-          </div>
-
-          <div class="intro-y text-justify leading-relaxed">
-
-                   
-                  
-
-{{ strip_tags(htmlspecialchars_decode($church->town)) }}
-          </div>
-
-           <div class="intro-y text-justify leading-relaxed">
-
-                    
-                   
-<div class="intro-y text-justify leading-relaxed">
-
-          <br/>       
-<div class="font-extrabold">Pastor In-charge </div>
-                             </div>
-          </div>
-
-          <div class="intro-y text-justify leading-relaxed">
-
-                   
-                  
-
-{{ strip_tags(htmlspecialchars_decode($church->pastor)) }}
-          </div>
-         
-         
-
-
-          <div class="intro-y text-justify leading-relaxed">
-
-                    
-                   
-
-          </div>
-
-        
-
-
-           <div class="intro-y text-justify leading-relaxed">
-
-                    
-                   
-<div class="intro-y text-justify leading-relaxed">
-
-          <br/>       
-<div class="font-extrabold">Extablished Date </div>
-                             </div>
-          </div>
-
-          <div class="intro-y text-justify leading-relaxed">
-
-                   
-                  
-
-{{ strip_tags(htmlspecialchars_decode($church->est_date)) }}
-          </div>
-
-          
-                    
-          <br/>      
-          
-          
-   
-          <div class="intro-y text-justify leading-relaxed">
-
-                    
-                   
-<div class="intro-y text-justify leading-relaxed">
-
- 
-                             </div>
-          </div>
-          
-          
-                    <!-- END: Blog Layout -->
-                    <!-- BEGIN: Comments -->
-                   
-                   
-                  
-                    <!-- END: Comments -->
-                </div>
-
-
-                <div class="grid grid-cols-12 gap-6 mt-5">
-                    <div class="intro-y col-span-12 lg:col-span-12">
-                        <!-- BEGIN: Single Item -->
-                        
-                        <!-- END: Single Item -->
-
-
-
-                        <div class="intro-y box mt-5">
-                        <div class="flex flex-col sm:flex-row items-center p-5 border-b border-gray-200">
+                    <!-- END: Profile Menu -->
+                    <div class="col-span-12 lg:col-span-8 xxl:col-span-9">
+                        <!-- BEGIN: Display Information -->
+                        <div class="intro-y box lg:mt-5">
+                            <div class="flex items-center p-5 border-b border-gray-200">
                                 <h2 class="font-medium text-base mr-auto">
-                                    Services
+                                    Church Information
                                 </h2>
-                                <div class="w-full sm:w-auto flex items-center sm:ml-auto mt-3 sm:mt-0">
-                               
-
-                                    <div class="mr-3"><a  href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview" class="button w-32 mr-2 mb-2 flex items-center justify-center bg-gray-200 text-gray-600"> <i data-feather="plus" class="w-4 h-4 mr-2"></i> Add Service</a>
- </div>
-                              
-                                </div>
                             </div>
-                            <div class="flex flex-col sm:flex-row items-center p-5 border-b border-gray-200">
-                            
-                            <div class="overflow-x-auto" style="width:100%">
-     <table class="table " >
-         <thead>
-             <tr>
-                
-                 <th class="border-b-2 whitespace-no-wrap">Date</th>
-                 <th class="border-b-2 whitespace-no-wrap">Programe</th>
-                 <th class="border-b-2 whitespace-no-wrap">Duration</th>
-                 <th class="border-b-2 whitespace-no-wrap">Sermon</th>
-                 <th class="border-b-2 whitespace-no-wrap"></th>
-             </tr>
-         </thead>
-         <tbody>
-<?php 
-             foreach($services as $service){?>
-             <tr>
-             
-                 <td class="border-b"><?php echo $service->month; ?></td>
-                 <td class="border-b"><?php echo $service->title; ?></td>
-                 <td class="border-b"><?php echo $service->time; ?></td>
-                 <td class="border-b">
-                <?php if(!empty($service->sermonID)){?> 
-                    
-                      <a href="/pastor/service/sermon/{{$service->serviceID}}"><button class="button px-2 mr-1 mb-2 bg-theme-7 text-white tooltip cursor-pointer" title="Click to add sermon of service" > <span class="w-5 h-5 flex items-center justify-center"> <i data-feather="file-plus" class="w-4 h-4"></i> </span> </button></a></td>
-              
-                    <?php }else{?> 
-
-                        <a href="/pastor/sermon/view/{{$service->serviceID}}"><button class="button px-2 mr-1 mb-2 bg-theme-9 text-white tooltip cursor-pointer" title="Click to view sermon of service" > <span class="w-5 h-5 flex items-center justify-center"> <i data-feather="eye" class="w-4 h-4"></i> </span> </button></a></td>
-              
-
-                 <?php }?>
-                 <td class="border-b"> <a href="/pastor/services/delete/{{ $service->serviceID}}"><button class="button px-2 mr-1 mb-2 bg-theme-6 text-white"> <span class="w-5 h-5 flex items-center justify-center"> <i data-feather="trash" class="w-4 h-4"></i> </span> </button></a></td>
-             </tr>
-                                <?php }?>
-            
-         </tbody>
-     </table>
-     <?php if($services->count()>3){?>
-   <div style="padding:10px">
-                         
-                           <a href="/pastor/church/services/{{$church->churchID}}" class="button w-40 inline-block mr-1 mb-2 bg-gray-200 text-gray-600">View All Services</a>
-                        </div>
-                        <?php }?>
- </div>
-                             </div>
-                           
-                         
-                        </div>
-
-
-
-                        <!-- BEGIN: Multiple Item -->
-                        <div class="intro-y box mt-5">
-                            <div class="flex flex-col sm:flex-row items-center p-5 border-b border-gray-200">
-                                <h2 class="font-medium text-base mr-auto">
-                                    Photos
-                                </h2>
-                                <div class="w-full sm:w-auto flex items-center sm:ml-auto mt-3 sm:mt-0">
-                                <?php if($photos->count() >0){?>
-
-                                    <div class="mr-3"><a href="/manage/churches/gallery/{{ $church->churchID }}" class="button w-30 shadow-md mr-1 mb-2 bg-gray-200 text-gray-600">See All</a></div>
-                                <?php }?>
-                                </div>
-                            </div>
-                            <div class="p-5" id="multiple-item-slider">
-                                <div class="preview">
-                                    <?php if($photos->count()<1){?>
-                                <div class="rounded-md px-5 py-4 mb-2 bg-gray-200 text-gray-600" style="text-align:center">
-                                   No photo uploaded for Branch <br/> <br/>
-                                    <a href="/manage/churches/photo/{{ $church->churchID }}" class="button text-white bg-theme-1 shadow-md mr-2"> Add Photo</a>
-                                </div>
-                                    <?php }?>
-                                    <div class="slider mx-6 multiple-items">
-                                        @foreach($photos as $photo)
-                                        <div class="h-32 px-2">
-                                            <div class="h-full bg-gray-200 rounded-md">
-                                            <img alt="" class="rounded-t-md" src="{{ URL::asset('churchPhoto') }}/{{$photo->filename}}">
-                          
-                                            </div>
-                                        </div>
-                                        @endforeach
-                                        
+                            <div class="p-5">
+                                <div class="grid grid-cols-12 gap-5">
                                     
-                                       
+                                    <div class="col-span-12 xl:col-span-12">
+                                      
+                                    {{ strip_tags(htmlspecialchars_decode($church->note)) }}      
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                        <!-- END: Display Information -->
+                        <!-- BEGIN: Personal Information -->
+                        <div class="intro-y box lg:mt-5">
+                            <div class="flex items-center p-5 border-b border-gray-200">
+                                <h2 class="font-medium text-base mr-auto">
+                                    Location
+                                </h2>
+                            </div>
+                            <div class="p-5">
+                                <div class="grid grid-cols-12 gap-5">
+                                    
+                                    <div class="col-span-12 xl:col-span-6">
+                                        <div>
+                                            <label>Country</label>
+                                            <input type="text" class="input w-full border bg-gray-100 cursor-not-allowed mt-2" placeholder="Input text" value="{{ strip_tags(htmlspecialchars_decode($church->country)) }}" disabled>
+                                        </div>
+                                        <div class="mt-3">
+                                            <label>State</label>
+                                            <input type="text" class="input w-full border mt-2" placeholder="Input text" value="{{ strip_tags(htmlspecialchars_decode($church->state)) }}" disabled>
+                                        </div>
+                                      
+                                       
+                                    </div>
+                                    <div class="col-span-12 xl:col-span-6">
+                                        <div>
+                                            <label>Date Created</label>
+                                            <input type="text" class="input w-full border mt-2" placeholder="Input text" value="{{ strip_tags(htmlspecialchars_decode($church->est_date)) }}">
+                                        </div>
+                                        <div class="mt-3">
+                                            <label>Town</label>
+                                            <input type="text" class="input w-full border mt-2" placeholder="Input text" value="{{ strip_tags(htmlspecialchars_decode($church->town)) }}">
+                                        </div>
+                                       
+                                       
+                                    </div>
+                                     
+                                </div>
+                                
+                            </div>
+                        </div>
+                        <!-- END: Personal Information -->
+                    </div>
+                </div>
+
+              
+
+
+
+                      
                                
 
 

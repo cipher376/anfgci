@@ -10,9 +10,32 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-
-
+use \App\Http\Controllers\ManageController;
+use App\Http\Resources\combinedUserCollection;
+use App\Http\Resources\UserCollection;
+use App\Http\Resources\churchCollection;
+use App\Http\Resources\churchResource;
+use App\Http\Resources\allChurchPhotos;
+use App\Http\Resources\CResourcePhotoPaginate;
+use App\Http\Resources\User as UserResource;
+use App\Http\Resources\UserProfileResource;
+use App\Http\Resources\UserProfilePhotoResource;
+use App\Http\Resources\pastors;
+use App\Http\Resources\pastordetail;
+use App\Http\Resources\pastorspaging;
+use App\Http\Resources\pastorsAudio;
+use App\Http\Resources\pastorsAudioSingle;
+use App\Http\Resources\pastorsAudioSingleExclude;
+use App\Http\Resources\pastorsAudioSingleExcludePaging;
+use App\Http\Resources\pastorsVideos;
+use App\Http\Resources\pastorsVideosSingle;
+use App\Http\Resources\pastorsVideoSingleExclude;
+use App\Http\Resources\pastorsVideoSingleExcludePaging;
+use App\Http\Resources\pastorsSermons;
+use App\Http\Resources\pastorsSermonsSingle;
+use App\User;
+use App\profile;
+use App\photos;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -69,7 +92,9 @@ Route::get('/pastor/audio/listen/{audio}', 'PastorController@listen_audio')->nam
 
 Route::get('/manage', 'ManageController@index')->name('manage');
 Route::get('manage/sermons', 'ManageController@sermons')->name('sermons');
-
+Route::get('manage/churches/view/album/{church}', 'ManageController@album')->name('album');
+Route::get('manage/church/user_settings/{church}', 'ManageController@usersettings')->name('usersettings');
+Route::post('manage/church/user_settings/{church}', 'ManageController@add_pastor')->name('add_pastor');
 
 Route::get('manage/profile/{profile}', 'ManageController@profile')->name('profile');
 Route::put('manage/profile', 'ManageController@updateprofile')->name('update.profile');
@@ -83,6 +108,15 @@ Route::post('manage/churches/photo/{church}', 'ManageController@store_photo')->n
 Route::get('manage/churches/{church_id}/photo/edit/{photo_id}', 'ManageController@edit_photo')->name('edit_photo');
 Route::put('manage/churches/{church_id}/photo/edit/{photo_id}', 'ManageController@update_photo')->name('update_photo');
 Route::get('manage/photo/delete/{photo_id}', 'ManageController@delete_photo')->name('delete_photo');
+Route::get('manage/church/view/photodetail/{photo_id}', 'ManageController@photodetail')->name('photodetail');
+Route::get('manage/church/services/{church}', 'ManageController@showChurchservices')->name('showChurchservices');
+Route::post('manage/service/sermon/{sermon}', 'ManageController@serviceSermons')->name('serviceSermons');
+
+Route::get('manage/church/{church}/service/sermon/view/{sermon}', 'ManageController@serviceSermonx')->name('serviceSermonx');
+Route::get('manage/church/events/{church}', 'ManageController@events')->name('events');
+Route::post('manage/church/events/{church}', 'ManageController@store_events')->name('store_events');
+
+
 
 
 Route::get('manage/churches', 'ManageController@churches')->name('churches');
@@ -143,6 +177,324 @@ Route::get('manage/premium_video', 'ManageController@premiumvideo')->name('premi
 Route::get('manage/premium_add_video', 'ManageController@add_premium')->name('add_premium_video');
 Route::post('manage/premium_add_video', 'ManageController@store_premium_videos')->name('store_premium_videos');
 
+
+
+
+////////////////////////// API START HERE /////////////////////////////////////////////////////////
+
+//////////////////////// users object ////////////////////////////////////////////////////////////
+//Route::get('api/users', 'ApiController@users');
+//Route::get('api/users/{user}', 'ApiController@singleuser');
+
+
+Route::get('api/users', function () {
+    return new UserCollection(User::whereIn('role',['user'])->get());
+});
+
+Route::get('api/users/{user}', function ($id) {
+    $users =User::find($id);
+    
+    return new UserResource($users);
+});
+
+Route::get('api/users/{user}/profile', function ($id) {
+
+
+    $users = DB::table('profile')
+
+    ->select('profile.firstname','profile.lastname','profile.email','profile.phone','address.country','address.state','address.town')
+    
+    ->join('address','address.addressID','=','profile.addressID')
+    
+    ->where(['id' => $id])
+    
+    ->get();
+
+
+
+    return new UserProfileResource($users);
+});
+
+Route::get('api/users/{user}/profile/photo', function ($id) {
+   
+    //$profilex = profile::where('id', '=', $id)->first();
+    //$profiles =profile::find($profilex->photoID)->photos;
+
+    $profiles= DB::table('profile')
+
+    ->select('profile.firstname','profile.lastname','profile.email','profile.phone','photos.url','address.country','address.state','address.town')
+    
+    ->join('photos','photos.photoID','=','profile.photoID')
+    ->join('address','address.addressID','=','profile.addressID')
+    
+    ->where(['id' => $id])
+    
+    ->get();
+
+    return new UserProfilePhotoResource($profiles);
+});
+
+
+Route::get('api/users/profile/photo', function () {
+   
+
+    $profiles= DB::table('profile')
+    ->select('profile.firstname','profile.lastname','profile.email','profile.phone','photos.url','address.country','address.state','address.town')
+    ->join('address','address.addressID','=','profile.addressID') 
+    ->join('photos','photos.photoID','=','profile.photoID')
+    ->paginate(10);
+
+    return new combinedUserCollection($profiles);
+});
+/////////////////////////////////// CHURCH API ///////////////////////////////////////////
+
+Route::get('api/churches/', function () {
+
+    $churches= DB::table('churches')
+    ->select('churches.churchID','churches.name','churches.est_date','address.country','address.state','address.town')
+    ->join('address','address.addressID','=','churches.addressID') 
+    ->paginate(10);
+    return new ChurchCollection($churches);
+});
+
+
+Route::get('api/churches/{church}', function ($id) {
+
+    $churches= DB::table('churches')
+    ->select('churches.churchID','churches.name','churches.note','churches.est_date','address.country','address.state','address.town')
+    ->join('address','address.addressID','=','churches.addressID') 
+    ->where(['churchID' => $id])
+    ->get();
+
+    return  ChurchResource::collection($churches);
+});
+
+Route::get('api/churches/{church}/photos/page/all', function ($id) {
+   
+    $photos= DB::table('church_photos')
+    ->select('photos.url')
+    ->join('photos','photos.photoID','=','church_photos.photoID') 
+    ->where(['churchID' => $id])
+    ->paginate();
+
+    return new allChurchPhotos($photos);
+    
+
+
+});
+
+Route::get('api/churches/{church}/photos/page/{pag}', function ($id,$id2) {
+    $page=$id2;
+    $churches= DB::table('churches')
+    ->select('churches.churchID','churches.name','churches.note','churches.est_date','address.country','address.state','address.town')
+    ->join('address','address.addressID','=','churches.addressID') 
+    ->where(['churchID' => $id])
+    ->get();
+
+    $churchPhotos = ManageController::showChurchPhotosPag($id,$id2);
+    $collection = CResourcePhotoPaginate::collection($churches);
+    return $collection->additional(['photos' => $churchPhotos]);
+
+
+});
+
+
+//////////////////////////////// Pastors API //////////////////////////////
+
+Route::get('api/pastors/', function () {
+
+    $pastors= DB::table('pastors')
+    ->select('profile.firstname','profile.lastname','profile.email','profile.phone')
+    ->join('profile','profile.id','=','pastors.userID')
+    ->paginate();
+    
+    return new pastors($pastors);
+});
+
+
+
+Route::get('api/pastors/{pastor}', function ($id) {
+
+    $pastors= DB::table('profile')
+    ->select('profile.id','profile.firstname','profile.lastname','profile.email','profile.phone','photos.url','address.country','address.state','address.town')
+    ->join('pastors','pastors.userID','=','profile.id')
+    ->join('photos','photos.photoID','=','profile.photoID')
+    ->join('address','address.addressID','=','profile.addressID')
+    ->where(['id' => $id])
+    ->get();
+
+    $church= DB::table('pastors')
+    ->select('churches.name')
+    ->join('churches','churches.churchID','=','pastors.churchID')
+    ->where(['userID' => $id])
+    ->first();
+
+    
+    
+   // return new pastordetail($pastors);
+   $collection = pastordetail::collection($pastors);
+   return $collection->additional(['church' => ucwords($church->name)]);
+    
+});
+
+
+Route::get('api/pastors/{pastor}/resources/paging/{page}', function ($id,$id2) {
+
+    $page=$id2;
+    $pastors= DB::table('profile')
+    ->select('profile.id','profile.firstname','profile.lastname','profile.email','profile.phone','photos.url','address.country','address.state','address.town')
+    ->join('pastors','pastors.userID','=','profile.id')
+    ->join('photos','photos.photoID','=','profile.photoID')
+    ->join('address','address.addressID','=','profile.addressID')
+    ->where(['id' => $id])
+    ->first();
+
+    $church= DB::table('pastors')
+    ->select('churches.name')
+    ->join('churches','churches.churchID','=','pastors.churchID')
+    ->where(['userID' => $id])
+    ->first();
+
+    
+    return new pastorspaging($pastors,$page);
+   //$collection = pastordetail::collection($pastors);
+   //return $collection->additional(['church' => ucwords($church->name)]);
+    
+});
+
+
+Route::get('api/pastors/{pastor}/audios', function ($id) {
+
+    $pastors= DB::table('audios')
+    ->select('audios.audioID','audios.audioType','resources.title','resources.author','resources.url','photos.url')
+    ->join('resources','resources.resourceID','=','audios.resourceID')
+    ->join('photos','photos.photoID','=','audios.photoID')
+    ->where(['userID' => $id])
+    ->paginate();
+    
+    return new pastorsAudio($pastors);
+    
+});
+
+
+Route::get('api/pastors/{pastor}/audios/{audio}', function ($id,$id2) {
+
+    $pastors= DB::table('audios')
+    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','resources.url','photos.url')
+    ->join('resources','resources.resourceID','=','audios.resourceID')
+    ->join('photos','photos.photoID','=','audios.photoID')
+    ->where(['audioID' => $id2])
+    ->first();
+    
+    return new pastorsAudioSingle($pastors);
+    
+});
+Route::get('api/pastors/{pastor}/audios/exclude/{audio}', function ($id,$id2) {
+
+    $pastors= DB::table('audios')
+    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','resources.url','photos.url')
+    ->join('resources','resources.resourceID','=','audios.resourceID')
+    ->join('photos','photos.photoID','=','audios.photoID')
+    ->where(['audioID','!=',$id2],['userID'=>$id])
+    ->get();
+    
+    return new pastorsAudioSingleExclude($pastors);
+    
+});
+
+Route::get('api/pastors/{pastor}/audios/exclude/{audios}/paging/{page}', function ($id,$id2,$id3) {
+
+    $pastors= DB::table('audios')
+    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','resources.url','photos.url')
+    ->join('resources','resources.resourceID','=','audios.resourceID')
+    ->join('photos','photos.photoID','=','audios.photoID')
+    ->where(['audioID','!=',$id2],['userID'=>$id])
+    ->paginate($id3);
+    
+    return new pastorsAudioSingleExcludePaging($pastors);
+    
+});
+
+
+Route::get('api/pastors/{pastor}/videos', function ($id) {
+
+    $pastors= DB::table('videos')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.author','resources.url','photos.url')
+    ->join('resources','resources.resourceID','=','videos.resourceID')
+    ->join('photos','photos.photoID','=','videos.photoID')
+    ->where(['userID' => $id])
+    ->paginate();
+    
+    return new pastorsVideos($pastors);
+    
+});
+
+
+
+
+Route::get('api/pastors/{pastor}/videos/{video}', function ($id,$id2) {
+
+    $pastors= DB::table('videos')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.url','photos.url')
+    ->join('resources','resources.resourceID','=','videos.resourceID')
+    ->join('photos','photos.photoID','=','videos.photoID')
+    ->where(['videoID' => $id2])
+    ->first();
+    
+    return new pastorsVideosSingle($pastors);
+    
+});
+
+Route::get('api/pastors/{pastor}/videos/exclude/{videos}', function ($id,$id2) {
+
+    $pastors= DB::table('videos')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.url','photos.url')
+    ->join('resources','resources.resourceID','=','videos.resourceID')
+    ->join('photos','photos.photoID','=','videos.photoID')
+    ->where(['videoID','!=',$id2],['userID'=>$id])
+    ->get();
+    
+    return new pastorsVideoSingleExclude($pastors);
+    
+});
+
+Route::get('api/pastors/{pastor}/videos/exclude/{videos}/paging/{page}', function ($id,$id2,$id3) {
+
+    $pastors= DB::table('videos')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.url','photos.url')
+    ->join('resources','resources.resourceID','=','videos.resourceID')
+    ->join('photos','photos.photoID','=','videos.photoID')
+    ->where(['videoID','!=',$id2],['userID'=>$id])
+    ->paginate($id3);
+    
+    return new pastorsVideoSingleExcludePaging($pastors);
+    
+});
+
+Route::get('api/pastors/{pastor}/sermons', function ($id) {
+
+    $pastors= DB::table('sermons')
+    ->select('sermons.sermonID','sermons.created_at','resources.title','resources.artist','resources.url')
+    ->join('resources','resources.resourceID','=','sermons.resourceID')
+    ->where(['userID' => $id])
+    ->paginate();
+    
+    return new pastorsSermons($pastors);
+    
+});
+
+Route::get('api/pastors/{pastor}/sermons/{sermon}', function ($id,$id2) {
+
+    $pastors= DB::table('sermons')
+    ->select('sermons.sermonID','sermons.created_at','resources.title','resources.artist','resources.note','resources.url')
+    ->join('resources','resources.resourceID','=','sermons.resourceID')
+    ->where(['sermonID' => $id])
+    ->get();
+    
+    return pastorsSermonsSingle::collection($pastors);
+    
+});
+
 Route::get('api/sermons', 'ApiController@sermons');
 Route::get('api/sermons/{sermon}', 'ApiController@getsermon');
 
@@ -158,6 +510,7 @@ Route::get('api/videos/{video}','ApiController@getvideo');
 ////////////////sermons///////////////////////////////////////
 ////////create
 Route::get('api/sermon/','ApiController@create_sermon');
+
 
 
 

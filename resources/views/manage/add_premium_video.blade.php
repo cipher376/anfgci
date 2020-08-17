@@ -90,7 +90,7 @@
              
                 </div>
 
-
+<?php //echo phpinfo(); ?>
 
                 <div class="intro-y box py-10 sm:py-8 mt-5">
              
@@ -123,7 +123,10 @@
 
                      </div>
 
-                    
+                     <div class="intro-y col-span-12 sm:col-span-6">
+                        <div class="mb-6">Upload Cover Photo</div>
+                            
+                        <input name="imgfile" type="file"   /> </div>
                 
                      <div class="intro-y col-span-12 sm:col-span-6">
                         <div class="mb-6" style="color:forestgreen">Upload Video</div>

@@ -105,4 +105,39 @@ class apiController extends Controller
     
    }
 
+   public function users(){
+     $userarray=array();
+     
+    $users = DB::select('select name, email from users where role !="User" ');
+    foreach($users as $user){
+
+    array_push($userarray,$user);
+
+    }
+
+    header("Content-Type:application/json");
+
+    $json=json_encode($userarray,JSON_PRETTY_PRINT);
+    return $json;
+
+   
+  }
+
+
+  public function singleuser($id){
+    $userarray=array();
+    
+   $users = DB::select('select name, email from users where id='.$id);
+   foreach($users as $user){
+    $userarray['name']=$user->name;
+    $userarray['email']=$user->email;
+
+   }
+   header("Content-Type:application/json");
+   $json=json_encode($userarray,JSON_PRETTY_PRINT);
+   return $json;
+
+  
+ }
+
 }
