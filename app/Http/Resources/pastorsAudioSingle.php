@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\Resource;
+use \App\Http\Controllers\ManageController;
 
 class pastorsAudioSingle extends Resource
 {
@@ -14,6 +15,17 @@ class pastorsAudioSingle extends Resource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->audioID,
+            'type' => $this->audioType,
+            'title' => $this->title,
+            'author' => $this->artist,
+            'photoCover' => $this->url,
+            'note' => $this->note,
+            'url' => ManageController::audiosFile($this->audioID),
+            
+            
+          
+        ];
     }
 }

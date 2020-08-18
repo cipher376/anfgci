@@ -128,7 +128,10 @@
                          <div class="mb-2">Video ID </div>
                          <input name="id" type="text" class="input w-full border flex-1" placeholder="enter video ID" value="{{ old('id') }}">
                      </div>
-                       
+                     <div class="intro-y col-span-12 sm:col-span-6">
+                        <div class="mb-6">Upload Cover Photo</div>
+                            
+                        <input name="file" type="file"   /> </div> 
                     
                      <div class="intro-y col-span-12 flex items-center justify-center sm:justify-end mt-5">
                         

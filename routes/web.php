@@ -188,7 +188,7 @@ Route::post('manage/premium_add_video', 'ManageController@store_premium_videos')
 
 
 Route::get('api/users', function () {
-    return new UserCollection(User::whereIn('role',['user'])->get());
+    return new UserCollection(User::whereIn('role',['user'])->paginate());
 });
 
 Route::get('api/users/{user}', function ($id) {
@@ -304,7 +304,7 @@ Route::get('api/churches/{church}/photos/page/{pag}', function ($id,$id2) {
 Route::get('api/pastors/', function () {
 
     $pastors= DB::table('pastors')
-    ->select('profile.firstname','profile.lastname','profile.email','profile.phone')
+    ->select('profile.id','profile.firstname','profile.lastname','profile.email','profile.phone')
     ->join('profile','profile.id','=','pastors.userID')
     ->paginate();
     
@@ -366,7 +366,7 @@ Route::get('api/pastors/{pastor}/resources/paging/{page}', function ($id,$id2) {
 Route::get('api/pastors/{pastor}/audios', function ($id) {
 
     $pastors= DB::table('audios')
-    ->select('audios.audioID','audios.audioType','resources.title','resources.author','resources.url','photos.url')
+    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','resources.url','photos.url')
     ->join('resources','resources.resourceID','=','audios.resourceID')
     ->join('photos','photos.photoID','=','audios.photoID')
     ->where(['userID' => $id])
@@ -380,7 +380,7 @@ Route::get('api/pastors/{pastor}/audios', function ($id) {
 Route::get('api/pastors/{pastor}/audios/{audio}', function ($id,$id2) {
 
     $pastors= DB::table('audios')
-    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','resources.url','photos.url')
+    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','photos.url','resources.note')
     ->join('resources','resources.resourceID','=','audios.resourceID')
     ->join('photos','photos.photoID','=','audios.photoID')
     ->where(['audioID' => $id2])
@@ -392,11 +392,13 @@ Route::get('api/pastors/{pastor}/audios/{audio}', function ($id,$id2) {
 Route::get('api/pastors/{pastor}/audios/exclude/{audio}', function ($id,$id2) {
 
     $pastors= DB::table('audios')
-    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','resources.url','photos.url')
+    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','photos.url')
     ->join('resources','resources.resourceID','=','audios.resourceID')
     ->join('photos','photos.photoID','=','audios.photoID')
-    ->where(['audioID','!=',$id2],['userID'=>$id])
+    ->where('audioID','!=',$id2)
+    ->where('userID','=',$id)
     ->get();
+    
     
     return new pastorsAudioSingleExclude($pastors);
     
@@ -405,11 +407,13 @@ Route::get('api/pastors/{pastor}/audios/exclude/{audio}', function ($id,$id2) {
 Route::get('api/pastors/{pastor}/audios/exclude/{audios}/paging/{page}', function ($id,$id2,$id3) {
 
     $pastors= DB::table('audios')
-    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','resources.url','photos.url')
+    ->select('audios.audioID','audios.audioType','resources.title','resources.artist','photos.url')
     ->join('resources','resources.resourceID','=','audios.resourceID')
     ->join('photos','photos.photoID','=','audios.photoID')
-    ->where(['audioID','!=',$id2],['userID'=>$id])
+    ->where('audioID','!=',$id2)
+    ->where('userID','=',$id)
     ->paginate($id3);
+    
     
     return new pastorsAudioSingleExcludePaging($pastors);
     
@@ -419,7 +423,7 @@ Route::get('api/pastors/{pastor}/audios/exclude/{audios}/paging/{page}', functio
 Route::get('api/pastors/{pastor}/videos', function ($id) {
 
     $pastors= DB::table('videos')
-    ->select('videos.videoID','videos.vidType','resources.title','resources.author','resources.url','photos.url')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
     ->join('resources','resources.resourceID','=','videos.resourceID')
     ->join('photos','photos.photoID','=','videos.photoID')
     ->where(['userID' => $id])
@@ -435,13 +439,15 @@ Route::get('api/pastors/{pastor}/videos', function ($id) {
 Route::get('api/pastors/{pastor}/videos/{video}', function ($id,$id2) {
 
     $pastors= DB::table('videos')
-    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.url','photos.url')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.note','photos.url')
     ->join('resources','resources.resourceID','=','videos.resourceID')
     ->join('photos','photos.photoID','=','videos.photoID')
     ->where(['videoID' => $id2])
+    ->where(['userID' => $id])
     ->first();
-    
-    return new pastorsVideosSingle($pastors);
+     $video = ManageController::videoUrl($id2);
+    return new pastorsVideosSingle($pastors,$video);
+   
     
 });
 

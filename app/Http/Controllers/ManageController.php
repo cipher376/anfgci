@@ -1817,6 +1817,7 @@ public function serviceSermonView($id){
           'artist'=>'required|string',
           'note' => 'required|string',
           'id' => 'required|string',
+          'file'=>'required|mimes:jpeg,JPEG,png',
           ],
           [
               'title.required'=>'Enter a title for video. ',
@@ -1837,6 +1838,17 @@ public function serviceSermonView($id){
                 $created= date('Y-m-d H:i:s');
 
 
+ ////// move file to upload folder ////////////////
+
+ $file = request()->file('file');
+ $original_name = strtolower(trim($file->getClientOriginalName()));
+ $fileName =  time().rand(100,999).$original_name;
+ $filePath = 'photos';
+ $filePathdb=asset('/photos/'.$fileName);
+ $file->move($filePath,$fileName);
+
+
+
                 $resource = new resources;
 
                         $resource->title = request()->input('title');
@@ -1849,10 +1861,20 @@ public function serviceSermonView($id){
                         $resource->artist = request()->input('artist');
                         if($resource->save()){
 
-                $data=array('resourceID'=>$resource->id,'vidType'=>"free","userID"=>auth()->user()->id,"status"=>'0');
+                            $photos = new photos();
+
+                            $photos->type= '4';
+                            $photos->title= request()->input('title');
+                            $photos->caption= "cover photo";
+                            $photos->url=$filePathdb;
+                           if($photos->save()){
+
+                $data=array('resourceID'=>$resource->id,'vidType'=>"free","userID"=>auth()->user()->id,"photoID"=>$photos->id,"status"=>'0');
                 DB::table('videos')->insert($data);
                 return redirect()->back()->withSuccess('Upload sucessful.');
-                        }
+                           }     
+            
+            }
                
 
               }}
@@ -1979,7 +2001,7 @@ $churches= DB::table('church_photos')
         ->get();
         
            foreach($audios as $audio){
-            array_push($audioList,$audio->url);
+            array_push($audioList,$audio->title);
            }
          return $audioList;
          }  
@@ -1994,7 +2016,7 @@ $churches= DB::table('church_photos')
             ->paginate($id2);
             
                foreach($audios as $audio){
-                array_push($audioList,$audio->url);
+                array_push($audioList,$audio->title);
                }
              return $audioList;
              }  
@@ -2008,7 +2030,7 @@ $churches= DB::table('church_photos')
             ->get();
             
                foreach($audios as $audio){
-                array_push($audioList,$audio->url);
+                array_push($audioList,$audio->title);
                }
              return $audioList;
              } 
@@ -2022,7 +2044,7 @@ $churches= DB::table('church_photos')
                 ->paginate($id2);
                 
                    foreach($audios as $audio){
-                    array_push($audioList,$audio->url);
+                    array_push($audioList,$audio->title);
                    }
                  return $audioList;
                  } 
@@ -2036,7 +2058,7 @@ $churches= DB::table('church_photos')
                     ->get();
                     
                        foreach($sermons as $sermon){
-                        array_push($sermonList,$sermon->url);
+                        array_push($sermonList,$sermon->topic);
                        }
                      return $sermonList;
                      }   
@@ -2049,10 +2071,30 @@ $churches= DB::table('church_photos')
                 ->paginate($id2);
                 
                    foreach($sermons as $sermon){
-                    array_push($sermonList,$sermon->url);
+                    array_push($sermonList,$sermon->topic);
                    }
                  return $sermonList;
                  }   
+
+                 public static function audiosFile($id){
+
+                    $audiofile= DB::table('audios')
+                    ->select('resources.url')
+                    ->join('resources','resources.resourceID','=','audios.resourceID') 
+                    ->where(['audioID' => $id])
+                    ->first();
+                    return $audiofile->url;
+                 }
+
+                 public static function videoUrl($id){
+
+                    $videofile= DB::table('videos')
+                    ->select('resources.url')
+                    ->join('resources','resources.resourceID','=','videos.resourceID') 
+                    ->where(['videoID' => $id])
+                    ->first();
+                    return $videofile->url;
+                 }
 
 
 }
