@@ -29,8 +29,8 @@ use App\Http\Resources\pastorsAudioSingleExclude;
 use App\Http\Resources\pastorsAudioSingleExcludePaging;
 use App\Http\Resources\pastorsVideos;
 use App\Http\Resources\pastorsVideosSingle;
-use App\Http\Resources\pastorsVideoSingleExclude;
-use App\Http\Resources\pastorsVideoSingleExcludePaging;
+use App\Http\Resources\pastorsVideosSingleExclude;
+use App\Http\Resources\pastorsVideosSingleExcludePaging;
 use App\Http\Resources\pastorsSermons;
 use App\Http\Resources\pastorsSermonsSingle;
 use App\User;
@@ -454,26 +454,28 @@ Route::get('api/pastors/{pastor}/videos/{video}', function ($id,$id2) {
 Route::get('api/pastors/{pastor}/videos/exclude/{videos}', function ($id,$id2) {
 
     $pastors= DB::table('videos')
-    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.url','photos.url')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
     ->join('resources','resources.resourceID','=','videos.resourceID')
     ->join('photos','photos.photoID','=','videos.photoID')
-    ->where(['videoID','!=',$id2],['userID'=>$id])
+    ->where('videoID','!=',$id2)
+    ->where('userID','=',$id)
     ->get();
     
-    return new pastorsVideoSingleExclude($pastors);
+    return new pastorsVideosSingleExclude($pastors);
     
 });
 
 Route::get('api/pastors/{pastor}/videos/exclude/{videos}/paging/{page}', function ($id,$id2,$id3) {
 
     $pastors= DB::table('videos')
-    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.url','photos.url')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
     ->join('resources','resources.resourceID','=','videos.resourceID')
     ->join('photos','photos.photoID','=','videos.photoID')
-    ->where(['videoID','!=',$id2],['userID'=>$id])
+    ->where('videoID','!=',$id2)
+    ->where('userID','=',$id)
     ->paginate($id3);
     
-    return new pastorsVideoSingleExcludePaging($pastors);
+    return new pastorsVideosSingleExcludePaging($pastors);
     
 });
 
