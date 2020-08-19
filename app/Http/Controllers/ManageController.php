@@ -17,6 +17,7 @@ use App\audios;
 use App\church_photos;
 use App\church_services;
 use App\events;
+use App\eventphotos;
 
 class ManageController extends Controller
 {
@@ -247,6 +248,55 @@ class ManageController extends Controller
                     $church_photos->photoID=$photos->id;
                     $church_photos->userID= auth()->user()->id;
                     $church_photos->save();
+                    
+        
+                   }
+                   ////////// redirect to url //////////////////////////
+        
+                   return redirect()->back()->withSuccess('Photo uploaded succesfully');
+                        
+                    }else{
+        
+        
+                         return redirect()->back()->withErrors($validator)->withInput();
+        
+                    }
+
+
+       
+    }
+
+
+    public function eventPhoto($id,$id2)
+    {
+
+
+                if(count(request()->all()) > 0){
+
+                    ////// move file to upload folder ////////////////
+
+                    $file = request()->file('file');
+                    $original_name = strtolower(trim($file->getClientOriginalName()));
+                    $fileName =  time().rand(100,999).$original_name;
+                    $filePath = 'eventPhoto';
+                    $filePathdb=asset('/eventPhoto/'.$fileName);
+                    $file->move($filePath,$fileName);
+        
+                    //////////// create data //////////////////////
+
+                    $photos = new photos();
+                    $photos->type= '8';
+                    $photos->title= request()->input('title');
+                    $photos->caption= request()->input('caption');
+                    $photos->url=$filePathdb;
+
+                   if( $photos->save() ){
+
+                    $eventphotos = new eventphotos();
+                    $eventphotos->churchID= $id;
+                    $eventphotos->photoID=$photos->id;
+                    $eventphotos->eventID=$id2;
+                    $eventphotos->save();
                     
         
                    }
@@ -817,11 +867,13 @@ public function add_pastor($id){
         
                     //////////// create data //////////////////////
 
-                   // $photos = new photos();
-                   // $photos->type= '5';
-                   // $photos->title= request()->input('title');
-                   // $photos->caption= request()->input('note');
-                   // $photos->url=$filePathdb;
+                   $address = new Location();
+                   $address->town= request()->input('town');
+                   $address->country= request()->input('country');
+                   $address->state= request()->input('state');
+                   $address->lat="";
+                   $address->lng= "";
+                   if( $address->save()){
 
                     $events= new events();
                     $events->churchID= $id;
@@ -830,12 +882,12 @@ public function add_pastor($id){
                     $events->author= auth()->user()->name;
                     $events->startTime=request()->input('startTime');
                     $events->endTime=request()->input('endTime');
-                    $events->addressID=$address->$id;
+                    $events->addressID=$address->id;
                     $events->save();
                    ////////// redirect to url //////////////////////////
         
                    return redirect()->back()->withSuccess('Events uploaded succesfully');
-                        
+                   }    
                     }
 
 
@@ -845,21 +897,46 @@ public function add_pastor($id){
     public function delete_events($id)
     
     {
-        $existFile=""; 
-        $photos = photos::where('photoID', '=', $id)->first();
-        $existFile.= $photos->url;
+        //$existFile=""; 
+        //$photos = photos::where('photoID', '=', $id)->first();
+       // $existFile.= $photos->url;
             
                     
 
-                    if(file_exists(public_path($existFile))){
+                  //  if(file_exists(public_path($existFile))){
 
-                        unlink(public_path($existFile));
+                     //   unlink(public_path($existFile));
                   
-                      }
+                    //  }
 
-        DB::table('events')->where('photoID', $id)->delete();
-        DB::table('photos')->where('photoID', $id)->delete();
-        return redirect()->back()->withSuccess('one photo deleted succesfuly.');
+        DB::table('events')->where('eventID', $id)->delete();
+       // DB::table('photos')->where('photoID', $id)->delete();
+        return redirect()->back()->withSuccess('one event deleted succesfuly.');
+       
+    }
+
+
+    public function eventDetail($id,$id2)
+    
+    {
+        //$existFile=""; 
+        //$photos = photos::where('photoID', '=', $id)->first();
+       // $existFile.= $photos->url;
+            
+                    
+
+                  //  if(file_exists(public_path($existFile))){
+
+                     //   unlink(public_path($existFile));
+                  
+                    //  }
+
+         $churches= DB::table('churches')->where('churchID', $id)->get();
+        $event= DB::table('events')->where('eventID', $id2)->first();
+       
+       
+
+        return view('manage.event_detail',['event'=>$event],['churches'=>$churches]);
        
     }
 
@@ -2034,6 +2111,9 @@ $churches= DB::table('church_photos')
                }
              return $audioList;
              } 
+
+
+             
              
              public static function pastorVideospaging($id,$id2){
                 $audioList=array();
@@ -2096,5 +2176,22 @@ $churches= DB::table('church_photos')
                     return $videofile->url;
                  }
 
+         public static function   pullEventPhotos($id){
+
+
+            $photos = DB::table('eventphotos')
+
+            ->select('photos.title','photos.caption','photos.url')
+            
+            ->join('photos','photos.photoID','=','eventphotos.photoID')
+            
+            ->where(['churchID' => $id])
+            
+            ->get();
+
+            return $photos;
+
+
+                 }
 
 }

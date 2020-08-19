@@ -2,11 +2,12 @@
 @extends('layouts.manage')
 @section('content')
 
-<?php $countries=ManageController::showCountries() ;?>
+
 <!-- BEGIN: Top Bar -->
 <div class="top-bar">
 @foreach($churches as $church)
-<?php $services=ManageController::showServices($church->churchID) ?>
+<?php $services=ManageController::showServices($church->churchID); ?>
+<?php $photos=ManageController::pullEventPhotos($church->churchID); ?>
                     <!-- BEGIN: Breadcrumb -->
                     <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Administration</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="/manage/churches" class="breadcrumb--active">Branch</a>  <i data-feather="chevron-right" class="breadcrumb__icon"></i>{{ strip_tags(htmlspecialchars_decode(substr($church->name, 0,70) ))}} </div>
                     <!-- END: Breadcrumb -->
@@ -71,65 +72,77 @@
                     <!-- END: Profile Menu -->
                     <div class="col-span-12 lg:col-span-8 xxl:col-span-9">
                         <!-- BEGIN: Display Information -->
-                        <div class="lg:mt-5">
-                            
-                           <h2 class="font-medium text-base mr-auto">
-                                   Events
-                                </h2>
-                               <br/>
-                        </div>
+                       
  
-                        <div class="w-full sm:w-auto flex mt-4 sm:mt-0" style="text-align:right">
-                        <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview2"  class="button text-white bg-theme-1 shadow-md mr-2" >Add Event</a>
                         
-                    </div><br/> 
                         <div class="intro-y col-span-12 md:col-span-6">
 
-                        <?php if(empty($events)){?>
-
-<div class="rounded-md flex items-center px-5 py-4 mb-2 bg-theme-17 text-theme-11"> <i data-feather="alert-circle" class="w-6 h-6 mr-2"></i> No records found </div>
-
-<?php }else{?>
-
-
-                            @foreach($events as $event)
-                        <div class="box">
-                            <div class="flex flex-col lg:flex-row items-center p-5 border-b border-gray-200">
-                                
-                               
-
-                                <div class="lg:ml-2 lg:mr-auto text-center lg:text-left mt-3 lg:mt-0">
-                                    <a href="" class="font-medium">{{ $event->title}}</a> <br/>
-                                    <span><?php echo  stripslashes(substr($event->note, 0,170)); ?></span>
-                                    
-                                    <div class="text-gray-600 text-xs"><span><b>Date posted</b> {{ \Carbon\Carbon::parse($event->created_at)->diffForHumans() }} </span>  <span style="padding-left:20px"> <b style="padding-left:20px;padding-right:10px"> Start time</b>{{ $event->startTime}} <b style="padding-left:20px;padding-right:10px"> End time</b>{{ $event->endTime}}</span><br/> </div>
-                                </div>
-                                <div class="flex -ml-2 lg:ml-0 lg:justify-end mt-3 lg:mt-0">
-
-                                    <a href="/manage/church/{{$church->churchID}}/events/detail/{{$event->eventID}}" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="View detail of this photo"> <i class="w-3 h-3 fill-current" data-feather="eye"></i> </a>
-                                    <a id="deleteUser{{$event->eventID}}" data-userid="{{$event->eventID}}" href="javascript:void(0)" onclick="showAlert({{$event->eventID}});" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Delete this photo"> <i class="w-3 h-3 fill-current" data-feather="trash-2"></i> </a>
-                                </div>
-                            </div>
-                           
-                        </div>
+                        <div class="intro-y news p-5 box mt-8">
+                    <!-- BEGIN: Blog Layout -->
+                   
+                    <h2 class="intro-y font-medium text-xl sm:text-2xl">
+                   {{ $event->title }}
+                    </h2>
+                    <BR/>
+                  
+                    <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview2" class="button w-32 mr-2 mb-2 flex items-center justify-center bg-theme-9 text-white"> <i data-feather="plus" class="w-4 h-4 mr-2"></i> Add Photo </a>
+                  
+                    <div class="intro-y text-gray-700 mt-3 text-xs sm:text-sm"><b> Posted </b> <span class="mx-1">•</span> {{ \Carbon\Carbon::parse($event->created_at)->diffForHumans() }} 
+                   <span style="padding-left:20px"><b> Start time</b></span> <span class="mx-1">•</span> {{$event->startTime}}
+                   <span style="padding-left:20px"><b> End time</b></span> <span class="mx-1">•</span> {{$event->endTime}}
+                  
+                   
+                
+                </div>
+                   
+                   
+                    <div class="intro-y text-justify leading-relaxed">
                         <br/>
-                        @endforeach
+                   <?php  echo stripslashes($event->note) ?>
+                       </div>
+                   
+                    <!-- END: Blog Layout -->
+                    <!-- BEGIN: Comments -->
+                   <br/>
+                    <h4 class="intro-y font-medium text-xl sm:text-2xl" style="font-size:18px">
+                   Photo
+                    </h4>
+                    <div class="grid grid-cols-12 gap-5 mt-5 pt-5 border-t border-theme-5">
+                        @foreach($photos as $photo)   
+                         
+                         <a href="javascript:;" data-toggle="modal" data-target="#add-item-modal" class="intro-y block col-span-12 sm:col-span-4 xxl:col-span-3">
+                                <div class="box rounded-md p-3 relative zoom-in">
+                                    <div class="flex-none pos-image relative block">
+                                      
+                                            <img  src="{{$photo->url}}" style="width:100%">
+                                      
+                                    </div>
+                                    <div class="block font-medium text-center truncate mt-3">{{$photo->title}}</div>
+                                </div>
+                            </a>
+                            
+                            @endforeach
+                    </div>
+                   
 
-<?php }?>
+                    
+                    <!-- END: Comments -->
+                </div>
                     </div>
                         <!-- END: Display Information -->
                         <!-- BEGIN: Personal Information -->
                         
                         <!-- END: Personal Information -->
                     </div>
+
+                   
                 </div>
 
               
        
 
 
-                <div class="grid grid-cols-12 gap-6 mt-5">
-                    <div class="intro-y col-span-12 lg:col-span-12">
+               
                         <!-- BEGIN: Single Item -->
                         
                         <!-- END: Single Item -->
@@ -141,49 +154,46 @@
 
 
                         <!-- BEGIN: Multiple Item -->
-                       
+                      
 
+
+                                <div class="modal" id="header-footer-modal-preview">
+     <div class="modal__content">
+         <div class="flex items-center px-5 py-5 sm:py-3 border-b border-gray-200">
+             <h2 class="font-medium text-base mr-auto">Service</h2> 
+             
+         </div>
+         <form  action="/pastor/church/services/{{ $church->churchID }}" method="post">
+         {{ csrf_field() }} 
+         <div class="p-5 grid grid-cols-12 gap-4 row-gap-3">
+             <div class="col-span-12 sm:col-span-12"> <label>Program Title</label> <input name="title" type="text" class="input w-full border mt-2 flex-1" placeholder="title"> </div>
+             <div class="col-span-12 sm:col-span-12"> <label>Month/Day/Year</label> <input name="month" type="text" class="datepicker input w-full border"> </div>
+            
+             <div class="col-span-12 sm:col-span-12"> <label>Time</label> <input type="text" name="time" class="input w-full border mt-2 flex-1" placeholder=""> </div>
+                                    
+         </div>
+         <div class="px-5 py-3 text-right border-t border-gray-200"> <button type="button" data-dismiss="modal" class="button w-20 border text-gray-700 mr-1">Cancel</button> <button type="submit" class="button w-20 bg-theme-1 text-white">Send</button> </div>
+    </form>  </div>
+ </div>
 
 
  <div class="modal" id="header-footer-modal-preview2">
      <div class="modal__content">
          <div class="flex items-center px-5 py-5 sm:py-3 border-b border-gray-200">
-             <h2 class="font-medium text-base mr-auto">New event</h2> 
+             <h2 class="font-medium text-base mr-auto">New Photo</h2> 
              
          </div>
-         <form  action="/manage/church/events/{{ $church->churchID }}" method="post" >
+         <form  action="/manage/church/{{ $church->churchID }}/events/photo/{{ $event->eventID }}" method="post" enctype="multipart/form-data">
          {{ csrf_field() }} 
          <div class="p-5 grid grid-cols-12 gap-4 row-gap-3">
-             <div class="col-span-12 sm:col-span-12"><label>Title</label> 
+             <div class="col-span-12 sm:col-span-12"> <label>Title</label> 
              <input name="title" type="text" class="input w-full border mt-2 flex-1" placeholder="title" required> </div>
-            
-               <div class="col-span-12 sm:col-span-12">  <label>Start time</label> 
-             <input name="startTime" type="text" class="datepicker input w-56 border block mx-auto" placeholder="Start time" required> </div>
-             <div class="col-span-12 sm:col-span-12"> <label>End time</label> 
-             <input name="endTime" type="text" class="datepicker input w-56 border block mx-auto" placeholder="End time" required> </div>
-           
-             
-             <div class="col-span-12 sm:col-span-12"><label>Country</label>
-             <select name="country" class="input w-full border mt-2" style="width:100%">
-                     
-                     @foreach($countries as $country)
-                      <option>{{ $country->country_name}}</option>
-                      @endforeach
-                  </select>
-</div>
-
-<div class="col-span-12 sm:col-span-12"><label>State</label> 
-             <input name="state" type="text" class="input w-full border mt-2 flex-1" placeholder="state" required> </div>
-     
-             
-             <div class="col-span-12 sm:col-span-12"><label>Town</label> 
-             <input name="town" type="text" class="input w-full border mt-2 flex-1" placeholder="town" required> </div>
- 
-             <div class="col-span-12 sm:col-span-12"> <label>Note</label> 
-             <textarea data-feature="basic" class="summernote" name="note" required></textarea>
+             <div class="col-span-12 sm:col-span-12"> <label>Caption</label> 
+             <textarea data-feature="basic" class="summernote" name="caption" required></textarea>
  </div>
             
-            
+             <div class="col-span-12 sm:col-span-12"> <label>Upload photo</label> 
+             <input name="file" class="input w-full border mt-2 flex-1" type="file" required  /> </div>
                                     
          </div>
          <div class="px-5 py-3 text-right border-t border-gray-200"> <button type="button" data-dismiss="modal" class="button w-20 border text-gray-700 mr-1">Cancel</button> <button type="submit" class="button w-20 bg-theme-1 text-white">Send</button> </div>
@@ -194,7 +204,6 @@
                         </div>
                         <!-- END: Multiple Item -->
                         <!-- BEGIN: Responsive Display -->
-                      
                         <form action="" method="post" >
                 <div class="modal" id="delete-confirmation-modal">
 
@@ -214,7 +223,6 @@
                     </div>
                 </div>
                 </form>
-                
                         <!-- END: Responsive Display -->
                     </div>
                    
@@ -238,7 +246,7 @@ function showAlert(photo){
 
 function senddel(){
     
-    window.location="/manage/events/delete/"+$('#app_id').val();
+    window.location="/manage/photo/delete/"+$('#app_id').val();
    
 }
 </script>

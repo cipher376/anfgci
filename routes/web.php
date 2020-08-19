@@ -33,6 +33,7 @@ use App\Http\Resources\pastorsVideosSingleExclude;
 use App\Http\Resources\pastorsVideosSingleExcludePaging;
 use App\Http\Resources\pastorsSermons;
 use App\Http\Resources\pastorsSermonsSingle;
+use App\Http\Resources\pastorspremiumVideosSingle;
 use App\User;
 use App\profile;
 use App\photos;
@@ -127,6 +128,11 @@ Route::post('manage/add_church', 'ManageController@store_churches')->name('add_c
 Route::get('manage/churches/delete/{church}', 'ManageController@destroyChurch')->name('church.delete');
 Route::get('manage/churches/view/{church}', 'ManageController@showChurch')->name('church.view');
 Route::post('manage/church/services/{church}', 'ManageController@addService')->name('add.service');
+Route::get('manage/events/delete/{event}', 'ManageController@delete_events')->name('event.delete');
+Route::get('manage/church/{church}/events/detail/{event}', 'ManageController@eventDetail')->name('eventDetail');
+Route::post('manage/church/{church}/events/photo/{event}', 'ManageController@eventPhoto')->name('eventPhoto');
+
+
 
 Route::get('manage/users', 'ManageController@users')->name('users');
 Route::get('manage/add_user', 'ManageController@add_user')->name('add_user');
@@ -491,33 +497,92 @@ Route::get('api/pastors/{pastor}/sermons', function ($id) {
     
 });
 
+
 Route::get('api/pastors/{pastor}/sermons/{sermon}', function ($id,$id2) {
 
     $pastors= DB::table('sermons')
     ->select('sermons.sermonID','sermons.created_at','resources.title','resources.artist','resources.note','resources.url')
     ->join('resources','resources.resourceID','=','sermons.resourceID')
-    ->where(['sermonID' => $id])
+    ->where(['sermonID' => $id2])
     ->get();
     
-    return pastorsSermonsSingle::collection($pastors);
+    return new pastorsSermonsSingle($pastors);
     
 });
 
-Route::get('api/sermons', 'ApiController@sermons');
-Route::get('api/sermons/{sermon}', 'ApiController@getsermon');
+Route::get('api/pastors/{pastor}/premiumvideos', function ($id) {
+
+    $pastors= DB::table('videos')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
+    ->join('resources','resources.resourceID','=','videos.resourceID')
+    ->join('photos','photos.photoID','=','videos.photoID')
+    ->where(['userID' => $id])
+    ->where(['vidType' =>'premium'])
+    ->paginate();
+    
+    return new pastorsVideos($pastors);
+    
+});
 
 
-Route::get('api/audios', 'ApiController@audios');
-Route::get('api/audios/{audio}','ApiController@getaudio');
-Route::get('api/videos', 'ApiController@videos');
-Route::get('api/videos/{video}','ApiController@getvideo');
+Route::get('api/pastors/{pastor}/premiumvideos/{video}', function ($id) {
+
+    $pastors= DB::table('videos')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.note','photos.url')
+    ->join('resources','resources.resourceID','=','videos.resourceID')
+    ->join('photos','photos.photoID','=','videos.photoID')
+    ->where(['userID' => $id])
+    ->where(['vidType' =>'premium'])
+    ->first();
+    
+    return new pastorsPremiumVideosSingle($pastors);
+    
+});
+
+Route::get('api/pastors/{pastor}/premiumvideos/exclude/{videos}', function ($id,$id2) {
+
+    $pastors= DB::table('videos')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
+    ->join('resources','resources.resourceID','=','videos.resourceID')
+    ->join('photos','photos.photoID','=','videos.photoID')
+    ->where('videoID','!=',$id2)
+    ->where('userID','=',$id)
+    ->where('vidType','=','premium')
+    ->get();
+    
+    return new pastorsVideosSingleExclude($pastors);
+    
+});
+
+Route::get('api/pastors/{pastor}/premiumvideos/exclude/{videos}/paging/{page}', function ($id,$id2,$id3) {
+
+    $pastors= DB::table('videos')
+    ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
+    ->join('resources','resources.resourceID','=','videos.resourceID')
+    ->join('photos','photos.photoID','=','videos.photoID')
+    ->where('videoID','!=',$id2)
+    ->where('userID','=',$id)
+    ->where('vidType','=','premium')
+    ->paginate($id3);
+    
+    return new pastorsVideosSingleExcludePaging($pastors);
+    
+});
+//Route::get('api/sermons', 'ApiController@sermons');
+//Route::get('api/sermons/{sermon}', 'ApiController@getsermon');
+
+
+//Route::get('api/audios', 'ApiController@audios');
+//Route::get('api/audios/{audio}','ApiController@getaudio');
+//Route::get('api/videos', 'ApiController@videos');
+//Route::get('api/videos/{video}','ApiController@getvideo');
 
 
 //API CRUD Functionality
 
 ////////////////sermons///////////////////////////////////////
 ////////create
-Route::get('api/sermon/','ApiController@create_sermon');
+//Route::get('api/sermon/','ApiController@create_sermon');
 
 
 
