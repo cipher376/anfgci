@@ -11,6 +11,7 @@ use App\churches;
 use App\pastors;
 use App\photos;
 use App\church_services;
+use App\church_photos;
 use App\audios;
 
 class PastorController extends Controller
@@ -454,6 +455,118 @@ class PastorController extends Controller
        
     }
 
+
+    public function showChurchservices($id){
+
+
+        $churches = DB::select('select * from churches where churchID='.$id);
+        //$services = church_services::where('churchID', '=', $id)->first();
+        $services = DB::table('church_services')->where('churchID', $id)->paginate();
+
+        return view('pastor.view_church_service',['services'=>$services],['churches'=>$churches]);
+
+
+    }
+
+    public function events($id){
+        
+        $churches = DB::select('select * from churches where churchID='.$id);
+        $events= DB::table('events')->where('churchID', $id)->paginate();
+        
+        return view('pastor.events',['events'=>$events],['churches'=>$churches]);
+
+    }
+
+
+
+
+    public function edit_event($id,$id2){
+
+
+        $churches= DB::table('churches')->where('churchID', $id)->get();
+  
+  
+        $event= DB::table('events')
+        ->select('events.eventID','events.title','events.note','events.author','events.startTime','events.endTime','address.country','address.state','address.town')
+        ->join('address','address.addressID','=','events.addressID') 
+        ->where(['eventID' => $id2])
+          ->first();
+       
+        return view('pastor.edit_event',['event'=>$event],['churches'=>$churches]);
+              
+      }
+
+      public function pastor_list($id)
+    {
+        $churches = DB::select('select * from churches where churchID='.$id);  
+        $pastors= DB::select('select * from pastors where churchID='.$id);
+       
+        return view('pastor.pastor_list',['churches'=>$churches],['pastors'=>$pastors]);
+    }
+
+
+      public function usersettings($id){
+
+        $churches = DB::select('select * from churches where churchID='.$id);
+        return view('pastor.user_settings',['churches'=>$churches]);
+    }
+
+      public function add_report($id){
+       
+        return view('pastor.add_report',['church'=>$id]);
+    }
+
+      public function church_report($id){
+        $reports= DB::table('reports')
+        ->select('resources.title','resources.url','resources.created_at','reports.reportMonth','reports.churchID','reports.id')
+        ->join('resources','resources.resourceID','=','reports.resourceID')
+        ->where(['churchID' => $id])
+        ->get();
+        return view('pastor.church_report',['reports'=>$reports],['church'=>$id]);
+    }
+
+
+
+    public function eventDetail($id,$id2)
+    
+    {
+        //$existFile=""; 
+        //$photos = photos::where('photoID', '=', $id)->first();
+       // $existFile.= $photos->url;
+            
+                    
+
+                  //  if(file_exists(public_path($existFile))){
+
+                     //   unlink(public_path($existFile));
+                  
+                    //  }
+
+         $churches= DB::table('churches')->where('churchID', $id)->get();
+        $event= DB::table('events')->where('eventID', $id2)->first();
+       
+       
+
+        return view('pastor.event_detail',['event'=>$event],['churches'=>$churches]);
+       
+    }
+
+
+    public function serviceSermonx($id,$id2){
+       
+        $sermonid="";
+        $churchServices=DB::table('church_services')->where('serviceID', $id2)->get();
+        foreach($churchServices as $churchService){
+        $sermonid=$churchService->sermonID;
+        }
+        $sermons = DB::select('select * from sermons left join resources using(resourceID) where sermonID='.$sermonid);
+        $churches = DB::select('select * from churches where churchID='.$id);
+       
+        return view('pastor.service_sermon',['sermons'=>$sermons],['churches'=>$churches]);
+    
+       }
+
+
     public function store_churches()
     {
         //1.validate data
@@ -500,7 +613,7 @@ class PastorController extends Controller
             $churches = new churches;
             $churches->name = request()->input('name');
             $churches->pastor = auth()->user()->name;
-            $churches->userID = auth()->user()->id;
+            $churches->id = auth()->user()->id;
             $churches->note= request()->input('note');
             $churches->addressID = $address->id;
             $churches->photoID = $photo;
@@ -609,11 +722,41 @@ class PastorController extends Controller
     }
 
 
+    public function photodetail($id){
+        $cp = church_photos::where('photoID', '=', $id)->first();
+        $churches = DB::select('select * from churches where churchID='.$cp->churchID);
+     
+        
+
+        $photos = photos::where('photoID', '=', $id)->first();
+        return view('pastor.view_photo_detail',['photos'=>$photos],['churches'=>$churches]);
+
+    }
+
+
+    public function album($id)
+    {
+        $churches = DB::select('select * from churches left join address using(addressID) where churchID='.$id);  
+        //$photos= DB::select('select * from church_photos left join photos using (photoID) where churchID='.$id);
+       
+        $photos= DB::table('church_photos')
+        ->select('photos.photoID','photos.title','photos.created_at','photos.caption','photos.url')
+        ->join('photos','photos.photoID','=','church_photos.photoID') 
+        ->where(['churchID' => $id])
+        ->paginate(9);
+    
+
+
+        return view('pastor.photo_album',['churches'=>$churches],['photos'=>$photos]);
+    }
+
+
     public function showChurch($id)
     
     {
         $churches = DB::select('select * from churches left join address using(addressID) where churchID='.$id);
-        $photos= DB::table('church_photos')->where('church_id', $id)->get();  
+        $photos = DB::select('select * from church_photos left join photos using(photoID) where churchID='.$id);
+        
        
         
         
@@ -902,6 +1045,104 @@ public function deleteServices($id) {
         return view('pastor.profile_view',['profiles'=>$profiles]);  
 
     }
+
+
+    public function update_user($id){
+
+        //1.validate data
+           
+        $validator=$this->validate(request(),[
+           'firstname'=>'required|string',
+           'lastname'=>'required|string',
+           'phone'=>'required|string',
+           'town'=>'required|string',
+           'state'=>'required|string',
+           'country'=>'required|string',
+           
+           
+           ]);
+   
+               if(count(request()->all()) > 0){
+   
+                  
+                   $addressid="";
+   
+   
+                   if(empty( request()->file('file'))){
+   
+                       
+                       //$profiles = DB::select('select * from profile where id='.auth()->user()->id);
+                       $profiles =  DB::table('profile')->where('id',$id)->get();
+                       foreach($profiles as $profile){
+   
+                           $addressid.=$profile->addressID;   
+                       }
+   
+                DB::table('profile')->where('id',$id)->update(['firstname' => request()->input('firstname'), 'lastname' => request()->input('lastname'), 'phone' => request()->input('phone')]);
+                DB::table('address')->where('addressID', $addressid)->update(['town' => request()->input('town'), 'state' => request()->input('state'), 'country' => request()->input('country')]);
+               
+                    
+                   
+                       return redirect()->back()->withSuccess('Update succesful.');
+                   
+                   }
+                   else{ 
+   
+   
+   
+   
+   
+                         ///// remove the existing file from folder /////////
+   
+                         $existFile=""; 
+   
+                         $profile=DB::table('profile')
+                         ->select('profile.id','photos.url','address.addressID','photos.photoID')
+                         ->join('photos','photos.photoID','=','profile.photoID') 
+                         ->join('address','address.addressID','=','profile.addressID') 
+                         ->where(['id' => $id])
+                         ->first();
+   
+                        
+     
+                             $addressid=$profile->addressID;
+                             $existFile.=$profile->url; 
+                               
+                        
+   
+     
+                         if(file_exists(public_path('profilePhoto/'.basename($existFile)))){
+     
+                             unlink(public_path('profilePhoto/'.basename($existFile)));
+                       
+                           }
+                        
+                       
+                         //////// move file to upload folder ////////////////
+                   $file=request()->file('file');
+                 $original_name = strtolower(trim($file->getClientOriginalName()));
+                 $fileName =  time().rand(100,999).$original_name;
+                 $filePathdb = asset('/profilePhoto/'.$fileName);
+                 $filePath = 'profilePhoto';
+                 $file->move($filePath,$fileName);
+                     
+     
+                 //////////////// update database with new information ///////
+     
+                 DB::table('profile')->where('id',$id)->update(['firstname' => request()->input('firstname'), 'lastname' => request()->input('lastname'), 'phone' => request()->input('phone')]);
+                DB::table('address')->where('addressID', $addressid)->update(['town' => request()->input('town'), 'state' => request()->input('state'), 'country' => request()->input('country')]);
+                DB::table('users')->where('id', $id)->update(['role' => request()->input('role')]);
+                DB::table('photos')->where('photoID', $profile->photoID)->update(['url' => $filePathdb]);
+               
+                          
+     
+                return redirect()->back()->withSuccess('Update succesful.');
+                       
+                  
+               
+                   }}
+   
+   }
 
     public function allvideo()
     {

@@ -33,10 +33,17 @@ use App\Http\Resources\pastorsVideosSingleExclude;
 use App\Http\Resources\pastorsVideosSingleExcludePaging;
 use App\Http\Resources\pastorsSermons;
 use App\Http\Resources\pastorsSermonsSingle;
+use App\Http\Resources\sermoncollection;
+use App\Http\Resources\eventcollection;
 use App\Http\Resources\pastorspremiumVideosSingle;
+use App\Http\Resources\sermonsingle;
+use App\Http\Resources\eventsingle;
+use App\Http\Resources\eventsinglepage;
 use App\User;
 use App\profile;
 use App\photos;
+use App\Http\Resources\eventsinglephotocollection;
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -70,7 +77,7 @@ Route::post('pastor/churches/photo/{church}', 'PastorController@add_photo')->nam
 Route::post('pastor/sermons/activation/', 'PastorController@postallow')->name('postallow');
 Route::get('/pastor/search', 'PastorController@searchquery')->name('search');
 Route::get('pastor/profile/{profile}', 'PastorController@profile')->name('profile');
-Route::put('pastor/profile/{profile}', 'PastorController@updateprofile')->name('updateprofile');
+Route::put('pastor/profile/{profile}', 'PastorController@update_user')->name('updateprofile');
 Route::get('/pastor/video_list', 'PastorController@allvideo')->name('allvideos');
 Route::post('pastor/add_video', 'PastorController@add_video')->name('addvideo');
 Route::get('pastor/add_video', 'PastorController@video')->name('video');
@@ -88,6 +95,23 @@ Route::post('pastor/add_audio', 'PastorController@store_audio')->name('store_aud
 Route::post('pastor/audio/activation/', 'PastorController@audioallow')->name('audioallow');
 Route::get('/pastor/audio/delete/{audio}', 'PastorController@delete_audio')->name('delete_audio');
 Route::get('/pastor/audio/listen/{audio}', 'PastorController@listen_audio')->name('listen_audio');
+Route::get('/pastor/churches/view/album/{church}', 'PastorController@album')->name('album');
+Route::get('pastor/church/view/photodetail/{photo_id}', 'PastorController@photodetail')->name('photodetail');
+Route::get('pastor/church/services/{church}', 'PastorController@showChurchservices')->name('showChurchservices');
+Route::get('pastor/church/{church}/service/sermon/view/{sermon}', 'PastorController@serviceSermonx')->name('serviceSermonx');
+Route::get('pastor/church/events/{church}', 'PastorController@events')->name('events');
+Route::get('pastor/church/{church}/events/detail/{event}', 'PastorController@eventDetail')->name('eventDetail');
+
+Route::get('/pastor/church/{church}/events/{event}/', 'PastorController@edit_event')->name('edit_event');
+
+Route::get('/pastor/churches/{church}/reports', 'PastorController@church_report')->name('church_report');
+
+Route::get('/pastor/church/{church}/add_report', 'PastorController@add_report')->name('add_report');
+
+Route::get('pastor/church/user_settings/{church}', 'PastorController@usersettings')->name('usersettings');
+
+Route::get('pastor/church/{church}/pastors/', 'PastorController@pastor_list')->name('pastor_list');
+
 
 
 
@@ -183,7 +207,19 @@ Route::get('manage/premium_video', 'ManageController@premiumvideo')->name('premi
 Route::get('manage/premium_add_video', 'ManageController@add_premium')->name('add_premium_video');
 Route::post('manage/premium_add_video', 'ManageController@store_premium_videos')->name('store_premium_videos');
 
+Route::get('/manage/services/delete/{service}', 'ManageController@delete_service')->name('delete_service');
+Route::get('/manage/church/{church}/events/{event}/photo/delete/{photo}', 'ManageController@delete_event_photo')->name('delete_event_photo');
+Route::get('/manage/church/{church}/events/{event}/', 'ManageController@edit_event')->name('edit_event');
+Route::put('/manage/church/{church}/events/update/{event}/', 'ManageController@edit_event_post')->name('edit_event_post');
 
+Route::get('/manage/church/{church}/event/{event}/photo/{photo}', 'ManageController@event_photo_detail')->name('event_photo_detail');
+Route::get('/manage/churches/{church}/reports', 'ManageController@church_report')->name('church_report');
+Route::get('/manage/church/{church}/add_report', 'ManageController@add_report')->name('add_report');
+Route::post('/manage/church/report/{report}', 'ManageController@store_report')->name('store_report');
+Route::get('manage/churches/report/delete/{report}', 'ManageController@delete_report')->name('report.delete');
+Route::get('manage/church/{church}/pastors/', 'ManageController@pastor_list')->name('pastor_list');
+Route::get('manage/church/pastor/delete/{pastor}', 'ManageController@pastor_delete')->name('pastor_delete');
+Route::get('manage/church/download/{filename}/folder/{path}', 'ManageController@download')->name('download');
 
 
 ////////////////////////// API START HERE /////////////////////////////////////////////////////////
@@ -568,6 +604,77 @@ Route::get('api/pastors/{pastor}/premiumvideos/exclude/{videos}/paging/{page}', 
     return new pastorsVideosSingleExcludePaging($pastors);
     
 });
+
+
+Route::get('api/sermons', function () {
+
+    $sermons= DB::table('sermons')
+    ->select('sermons.sermonID','resources.title','resources.note','resources.created_at','resources.url','resources.uploadby','resources.artist')
+    ->join('resources','resources.resourceID','=','sermons.resourceID')
+    ->where('status','=',1)
+    ->paginate();
+    
+    return new sermoncollection($sermons);
+    
+});
+Route::get('api/sermons/{sermon}', function ($id) {
+
+    $sermon= DB::table('sermons')
+    ->select('sermons.sermonID','resources.title','resources.note','resources.created_at','resources.url','resources.uploadby','resources.artist')
+    ->join('resources','resources.resourceID','=','sermons.resourceID')
+    ->where('sermonID','=',$id)
+    ->first();
+    
+    return new sermonsingle($sermon);
+    
+});
+
+Route::get('api/events', function () {
+
+    $events= DB::table('events')
+    ->select('events.eventID','events.churchID','events.title','events.note','events.author','events.startTime','events.endTime','events.created_at','address.country','address.state','address.town')
+    ->join('address','address.addressID','=','events.addressID')
+    ->paginate();
+    
+    return new eventcollection($events);
+    
+});
+
+Route::get('api/events/{event}', function ($id) {
+
+    $events= DB::table('events')
+    ->select('events.eventID','events.churchID','events.title','events.note','events.author','events.startTime','events.endTime','events.created_at','address.country','address.state','address.town')
+    ->join('address','address.addressID','=','events.addressID')
+    ->where('eventID','=',$id)
+    ->first();
+    
+    return new eventsingle($events);
+    
+});
+
+Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
+    $page=$id2;
+        $events= DB::table('events')
+        ->select('events.eventID','events.churchID','events.title','events.note','events.author','events.startTime','events.endTime','events.created_at','address.country','address.state','address.town')
+        ->join('address','address.addressID','=','events.addressID')
+        ->where('eventID','=',$id)
+        ->first();
+        
+        return new eventsinglepage($events,$page);
+        
+    });
+
+    Route::get('api/events/{event}/photos/all', function ($id) {
+       
+            $events= DB::table('eventphotos')
+            ->select('eventphotos.id','photos.title','photos.caption','photos.created_at','photos.url')
+            ->join('photos','photos.photoID','=','eventphotos.photoID')
+            ->where('eventID','=',$id)
+            ->paginate();
+            
+            return new eventsinglephotocollection($events);
+            
+        });
 //Route::get('api/sermons', 'ApiController@sermons');
 //Route::get('api/sermons/{sermon}', 'ApiController@getsermon');
 

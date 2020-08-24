@@ -1,7 +1,4 @@
-<?php   use \App\Http\Controllers\ManageController;
-
-?>
-@extends('layouts.pastor')
+@extends('layouts.manage')
 @section('content')
 
 
@@ -9,7 +6,7 @@
                 <!-- BEGIN: Top Bar -->
                 <div class="top-bar">
                     <!-- BEGIN: Breadcrumb -->
-                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Pastor</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="" class="breadcrumb--active">Branch</a> </div>
+                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Administration</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="" class="breadcrumb--active">Branches</a> </div>
                     <!-- END: Breadcrumb -->
                     <!-- BEGIN: Search -->
                    
@@ -52,11 +49,11 @@
                 </div>
                 <!-- END: Top Bar -->
                 <h2 class="intro-y text-lg font-medium mt-10">
-                   Branch
+                   Churches
                 </h2>
 <br/>
                
-                <a href="add_church" class="button text-white bg-theme-1 shadow-md mr-2">Add Branch </a>
+                <a href="add_church" class="button text-white bg-theme-1 shadow-md mr-2">Add Church </a>
               
                 <div class="grid grid-cols-12 gap-6 mt-5">
 
@@ -71,7 +68,7 @@
                             <tr>
                                 <th class="border-b-2 whitespace-no-wrap">NAME</th>
         
-                                <th class="border-b-2 text-center whitespace-no-wrap">CREATED</th>
+                                <th class="border-b-2 text-center whitespace-no-wrap">DATE CREATED</th>
                                
                                 <th class="border-b-2 text-center whitespace-no-wrap">ACTIONS</th>
                             </tr>
@@ -80,7 +77,7 @@
                             @foreach($churches as $church)
                             <tr>
                                 <td class="border-b">
-                                    <div class="font-medium whitespace-no-wrap">{{ $church->name }}</div>
+                                    <div class="font-medium whitespace-no-wrap">{{ ucwords($church->name) }}</div>
                                     
                                 </td>
                                 <td class="w-40 border-b">
@@ -90,18 +87,15 @@
                                 
                                 <td class="border-b w-5">
                                     <div class="flex sm:justify-center items-center">
-                                    <a class="flex items-center mr-3" href="/pastor/churches/view/{{ $church->churchID }}"> <i data-feather="eye" class="w-4 h-4 mr-1"></i> Detail </a>
+                                    <a class="flex items-center mr-3" href="/manage/churches/view/{{ $church->churchID }}"> <i data-feather="eye" class="w-4 h-4 mr-1"></i> Detail </a>
                                      
                                        
-                                    <?php $right= ManageController::right($church->churchID );
-                                       if($right==1){
-                                       ?>
-                                            <a class="flex items-center mr-3" href="/pastor/churches/edit/{{ $church->churchID }}"> <i data-feather="check-square" class="w-4 h-4 mr-1"></i> Edit </a>
+                                            <a class="flex items-center mr-3" href="/manage/churches/edit/{{ $church->churchID }}"> <i data-feather="check-square" class="w-4 h-4 mr-1"></i> Edit </a>
                                       
                                             <a class="flex items-center text-theme-6" id="deleteUser{{ $church->churchID}}" data-userid="{{$church->churchID}}" href="javascript:void(0)" onclick="showAlert({{ $church->churchID}});" > <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Delete </a>
                                        
-                                <?php }?>
-                             
+                                        
+                                  
                                     </div>
                                 </td>
                             </tr>
@@ -138,7 +132,6 @@
             
 @endsection
 
-
 <script>
 
 
@@ -152,7 +145,7 @@ function showAlert(photo){
 
 function senddel(){
     
-    window.location="/pastor/churches/delete/"+$('#app_id').val();
+    window.location="/manage/churches/delete/"+$('#app_id').val();
    
 }
 </script>

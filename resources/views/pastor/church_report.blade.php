@@ -1,6 +1,3 @@
-<?php   use \App\Http\Controllers\ManageController;
-
-?>
 @extends('layouts.pastor')
 @section('content')
 
@@ -9,7 +6,7 @@
                 <!-- BEGIN: Top Bar -->
                 <div class="top-bar">
                     <!-- BEGIN: Breadcrumb -->
-                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Pastor</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="" class="breadcrumb--active">Branch</a> </div>
+                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Pastor</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="" class="breadcrumb--active">Branches</a> </div>
                     <!-- END: Breadcrumb -->
                     <!-- BEGIN: Search -->
                    
@@ -52,11 +49,12 @@
                 </div>
                 <!-- END: Top Bar -->
                 <h2 class="intro-y text-lg font-medium mt-10">
-                   Branch
+                   Report
                 </h2>
 <br/>
-               
-                <a href="add_church" class="button text-white bg-theme-1 shadow-md mr-2">Add Branch </a>
+
+                <a href="/pastor/church/{{$church}}/add_report" class="button text-white bg-theme-1 shadow-md mr-2">Add Report </a>
+                <a href="/pastor/churches/view/{{$church}}" class="button text-white bg-theme-11 shadow-md mr-2">Go back to Church </a>
               
                 <div class="grid grid-cols-12 gap-6 mt-5">
 
@@ -69,43 +67,39 @@
                     <table class="table table-report table-report--bordered display datatable w-full" style="font-size:14px;">
                         <thead>
                             <tr>
-                                <th class="border-b-2 whitespace-no-wrap">NAME</th>
+                                <th class="border-b-2 whitespace-no-wrap">REPORT</th>
         
-                                <th class="border-b-2 text-center whitespace-no-wrap">CREATED</th>
+                                <th class="border-b-2 text-center whitespace-no-wrap">DATE CREATED</th>
                                
                                 <th class="border-b-2 text-center whitespace-no-wrap">ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($churches as $church)
+                        @foreach($reports as $report)
                             <tr>
                                 <td class="border-b">
-                                    <div class="font-medium whitespace-no-wrap">{{ $church->name }}</div>
+                                    <div class="font-medium whitespace-no-wrap">{{ ucwords(substr($report->title, 0,70)) }}...</div>
                                     
                                 </td>
                                 <td class="w-40 border-b">
-                                <div class="font-medium whitespace-no-wrap">{{ $church->created_at }}</div>
+                                <div class="font-medium whitespace-no-wrap">{{ $report->created_at }}</div>
                                 </td>
                               
                                 
                                 <td class="border-b w-5">
                                     <div class="flex sm:justify-center items-center">
-                                    <a class="flex items-center mr-3" href="/pastor/churches/view/{{ $church->churchID }}"> <i data-feather="eye" class="w-4 h-4 mr-1"></i> Detail </a>
+                                    <a href="/manage/church/download/{{ basename($report->url)}}/folder/{{'report'}}" class="flex items-center mr-3 tooltip tooltipstered" title="Download this report" href="" > <i data-feather="file-text" class="w-4 h-4 mr-1"></i> Download </a>
                                      
                                        
-                                    <?php $right= ManageController::right($church->churchID );
-                                       if($right==1){
-                                       ?>
-                                            <a class="flex items-center mr-3" href="/pastor/churches/edit/{{ $church->churchID }}"> <i data-feather="check-square" class="w-4 h-4 mr-1"></i> Edit </a>
-                                      
-                                            <a class="flex items-center text-theme-6" id="deleteUser{{ $church->churchID}}" data-userid="{{$church->churchID}}" href="javascript:void(0)" onclick="showAlert({{ $church->churchID}});" > <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Delete </a>
+                                         
+                                         <a class="flex items-center mr-3 text-theme-6 tooltip tooltipstered" title="Delete report"" id="deleteUser{{ $report->id}}" data-userid="{{$report->id}}" href="javascript:void(0)" onclick="showAlert({{ $report->id}});" > <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> </a> 
                                        
-                                <?php }?>
-                             
+                                        
+                                  
                                     </div>
                                 </td>
                             </tr>
-                            @endforeach
+                @endforeach
                         </tbody>
                     </table>
                     </div>
@@ -124,7 +118,7 @@
                         <div class="p-5 text-center">
                             <i data-feather="x-circle" class="w-16 h-16 text-theme-6 mx-auto mt-3"></i> 
                             <div class="text-3xl mt-5">Are you sure?</div>
-                            <div class="text-gray-600 mt-2">Do you really want to delete these records? This process cannot be undone.</div>
+                            <div class="text-gray-600 mt-2">Do you really want to delete these report? This process cannot be undone.</div>
                             <input type="hidden", name="id" id="app_id">
                         </div>
                         <div class="px-5 pb-8 text-center">
@@ -137,7 +131,6 @@
                 <!-- END: Delete Confirmation Modal -->
             
 @endsection
-
 
 <script>
 
@@ -152,7 +145,7 @@ function showAlert(photo){
 
 function senddel(){
     
-    window.location="/pastor/churches/delete/"+$('#app_id').val();
+    window.location="/manage/churches/report/delete/"+$('#app_id').val();
    
 }
 </script>

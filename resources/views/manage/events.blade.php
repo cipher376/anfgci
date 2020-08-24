@@ -100,13 +100,14 @@
 
                                 <div class="lg:ml-2 lg:mr-auto text-center lg:text-left mt-3 lg:mt-0">
                                     <a href="" class="font-medium">{{ $event->title}}</a> <br/>
-                                    <span><?php echo  stripslashes(substr($event->note, 0,170)); ?></span>
+                                    <span><?php echo  stripslashes(substr($event->note, 0,200)); ?>...</span><br/><br/>
                                     
                                     <div class="text-gray-600 text-xs"><span><b>Date posted</b> {{ \Carbon\Carbon::parse($event->created_at)->diffForHumans() }} </span>  <span style="padding-left:20px"> <b style="padding-left:20px;padding-right:10px"> Start time</b>{{ $event->startTime}} <b style="padding-left:20px;padding-right:10px"> End time</b>{{ $event->endTime}}</span><br/> </div>
                                 </div>
                                 <div class="flex -ml-2 lg:ml-0 lg:justify-end mt-3 lg:mt-0">
-
-                                    <a href="/manage/church/{{$church->churchID}}/events/detail/{{$event->eventID}}" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="View detail of this photo"> <i class="w-3 h-3 fill-current" data-feather="eye"></i> </a>
+                                <a href="/manage/church/{{$church->churchID}}/events/{{$event->eventID}}" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="edit this event"> <i class="w-3 h-3 fill-current" data-feather="edit-3"></i> </a>
+                                   
+                                    <a href="/manage/church/{{$church->churchID}}/events/detail/{{$event->eventID}}" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="View detail of this event"> <i class="w-3 h-3 fill-current" data-feather="eye"></i> </a>
                                     <a id="deleteUser{{$event->eventID}}" data-userid="{{$event->eventID}}" href="javascript:void(0)" onclick="showAlert({{$event->eventID}});" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Delete this photo"> <i class="w-3 h-3 fill-current" data-feather="trash-2"></i> </a>
                                 </div>
                             </div>

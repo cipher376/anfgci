@@ -1,14 +1,14 @@
 <?php   use \App\Http\Controllers\ManageController; ?>
-@extends('layouts.manage')
+@extends('layouts.pastor')
 @section('content')
 
-
+<?php $serviceid=""; ?>
 <!-- BEGIN: Top Bar -->
 <div class="top-bar">
 @foreach($churches as $church)
 <?php $services=ManageController::showServices($church->churchID) ?>
                     <!-- BEGIN: Breadcrumb -->
-                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Administration</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="/manage/churches" class="breadcrumb--active">Branch</a>  <i data-feather="chevron-right" class="breadcrumb__icon"></i>{{ strip_tags(htmlspecialchars_decode(substr($church->name, 0,70) ))}} </div>
+                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">pastor</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="/manage/churches" class="breadcrumb--active">Branch</a>  <i data-feather="chevron-right" class="breadcrumb__icon"></i>{{ strip_tags(htmlspecialchars_decode(substr($church->name, 0,70) ))}} </div>
                     <!-- END: Breadcrumb -->
                     <!-- BEGIN: Search -->
                    
@@ -65,72 +65,77 @@
                     <div class="col-span-12 lg:col-span-4 xxl:col-span-3 flex lg:block flex-col-reverse">
 
                     
-         @include('layouts.Church_Sidebar')
+         @include('layouts.pastor_church_sidebar')
                        
                     </div>
                     <!-- END: Profile Menu -->
                     <div class="col-span-12 lg:col-span-8 xxl:col-span-9">
                         <!-- BEGIN: Display Information -->
+                       
                         <div class="lg:mt-5">
                             
-                           <h2 class="font-medium text-base mr-auto">
-                                   Photo Album
-                                </h2>
-                               <br/>
-                        </div>
- 
-                        <div class="w-full sm:w-auto flex mt-4 sm:mt-0" style="text-align:right">
-                        <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview2"  class="button text-white bg-theme-1 shadow-md mr-2" >Add Photo</a>
+                            <h2 class="font-medium text-base mr-auto">
+                                    Services
+                                 </h2>
+                                <br/>
+                         </div>
+
+                         <div class="w-full sm:w-auto flex mt-4 sm:mt-0" style="text-align:right">
+                        <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview"  class="button text-white bg-theme-1 shadow-md mr-2" >Add Service</a>
                         
                     </div><br/> 
+                        
                         <div class="intro-y col-span-12 md:col-span-6">
 
-                        <?php if(empty($photos)){?>
+                        
+                        <?php if($services->count()<1){ ?>
 
 <div class="rounded-md flex items-center px-5 py-4 mb-2 bg-theme-17 text-theme-11"> <i data-feather="alert-circle" class="w-6 h-6 mr-2"></i> No records found </div>
 
 <?php }else{?>
-    <div class="grid grid-cols-12 gap-5 mt-5 pt-5 border-t border-theme-5">
 
-                            @foreach($photos as $photo)
-                       
-                        <span class="intro-y block col-span-12 sm:col-span-4 xxl:col-span-3">
-                        
-                        <div class="box rounded-md p-3 relative zoom-in">
-                       <a href="/manage/church/view/photodetail/{{ $photo->photoID }}">
-                                   <div class="flex-none pos-image relative block">
-                                     
-                                           <img  src="{{$photo->url}}" style="width:100%">
-                                     
-                                   </div>
-</a>
-                                   <div class="block font-medium text-center truncate mt-3">{{$photo->title}}
+                        @foreach($services as $service)
+                        <?php $serviceid=$service->serviceID;?>
+                        <div class="box">
+                            <div class="flex flex-col lg:flex-row items-center p-5 border-b border-gray-200">
+                                
+                                <div class="lg:ml-2 lg:mr-auto text-center lg:text-left mt-3 lg:mt-0">
+                                    <a href="" class="font-medium">{{ $service->title}}</a> 
+                                    <div class="text-gray-600 text-xs"><span><b>Date posted</b> {{ \Carbon\Carbon::parse($service->created_at)->diffForHumans() }} </span> <span style="padding-left:10px"> <b>Duration</b> {{ $service->time}} </span> <span><b>Date of service</b> {{ $service->month}} </span><br/> </div>
+                                </div>
+                                <div class="flex -ml-2 lg:ml-0 lg:justify-end mt-3 lg:mt-0">
 
-                                   <br/> {{ \Carbon\Carbon::parse($photo->created_at)->diffForHumans() }}
-                                   </div>
-                                   <div style="width:100%">
-                                    
-                                    <a id="deleteUser{{ $photo->photoID}}" data-userid="{{$photo->photoID}}" href="javascript:void(0)" onclick="showAlert({{ $photo->photoID}});" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Delete this photo"> <i class="w-3 h-3 fill-current" data-feather="trash-2"></i> </a>
-                          
-                                   </div>
-                               </div>
-                              
-                 </span>
+                                <?php if(!empty($service->sermonID)){?> 
+                    
+                    <a href="/pastor/church/{{$church->churchID}}/service/sermon/view/{{ $service->serviceID }}" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="View Sermon of service"> <i class="w-3 h-3 fill-current" data-feather="eye"></i> </a>
+                   
+                  <?php }else{?> 
+                                  
+                    <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview3"  class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Click to add sermon of service">  <i data-feather="file-plus" class="w-4 h-4"></i></a></td>
+                   
+               <?php }?>
 
-
-
+                                     <a id="deleteUser{{ $service->serviceID}}" data-userid="{{$service->serviceID}}" href="javascript:void(0)" onclick="showAlert({{ $service->serviceID}});" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Delete this service"> <i class="w-3 h-3 fill-current" data-feather="trash-2"></i> </a>
+                                </div>
+                            </div>
+                           
+                        </div>
+                        <br/>
                         @endforeach
-</div>
 
-<?php }?>
+                  <?php }?>
+                        
                     </div>
-<br/><br/>
-                    {{ $photos->links() }}
+
+                    <br/><br/>
+                    {{ $services->links() }}
                         <!-- END: Display Information -->
                         <!-- BEGIN: Personal Information -->
                         
                         <!-- END: Personal Information -->
                     </div>
+
+                   
                 </div>
 
               
@@ -145,12 +150,14 @@
 
 
 
-                        
+                       
 
 
 
                         <!-- BEGIN: Multiple Item -->
-                       
+                      
+                               
+
 
                                 <div class="modal" id="header-footer-modal-preview">
      <div class="modal__content">
@@ -158,7 +165,7 @@
              <h2 class="font-medium text-base mr-auto">Service</h2> 
              
          </div>
-         <form  action="/pastor/church/services/{{ $church->churchID }}" method="post">
+         <form  action="/manage/church/services/{{ $church->churchID }}" method="post">
          {{ csrf_field() }} 
          <div class="p-5 grid grid-cols-12 gap-4 row-gap-3">
              <div class="col-span-12 sm:col-span-12"> <label>Program Title</label> <input name="title" type="text" class="input w-full border mt-2 flex-1" placeholder="title"> </div>
@@ -192,7 +199,53 @@
                                     
          </div>
          <div class="px-5 py-3 text-right border-t border-gray-200"> <button type="button" data-dismiss="modal" class="button w-20 border text-gray-700 mr-1">Cancel</button> <button type="submit" class="button w-20 bg-theme-1 text-white">Send</button> </div>
-    </form>  </div>
+    </form> 
+
+
+
+
+</div>
+ </div>
+
+
+ <div class="modal" id="header-footer-modal-preview3">
+     <div class="modal__content">
+         <div class="flex items-center px-5 py-5 sm:py-3 border-b border-gray-200">
+             <h2 class="font-medium text-base mr-auto">Add Sermon to Service</h2> 
+             
+         </div>
+         <form  action="/manage/service/sermon/{{$serviceid}}" method="post" enctype="multipart/form-data">
+         {{ csrf_field() }} 
+         <div class="p-5 grid grid-cols-12 gap-4 row-gap-3">
+             <div class="col-span-12 sm:col-span-12"> <label>Title</label> 
+             <input name="topic" type="text" class="input w-full border flex-1" placeholder="Sermon Topic" required>
+            <input name="serviceid" type="hidden" class="input w-full border flex-1" value="{{ $serviceid }}">
+                          
+            <div class="col-span-12 sm:col-span-12"> <label>Author</label> 
+            <input name="author" type="text" class="input w-full border flex-1" placeholder="Name of minister" required>
+                           
+ </div>
+
+ <div class="col-span-12 sm:col-span-12"> <label>Sermon</label> 
+            <textarea data-feature="basic" class="summernote" name="sermon" required></textarea> 
+ 
+ </div>
+            
+             <div class="col-span-12 sm:col-span-12"> <label>Upload PDF Version of sermon</label> 
+             <input name="file" class="input w-full border mt-2 flex-1" type="file" required  /> </div>
+                                    
+         
+         
+         <div class="px-5 py-3 text-right border-t border-gray-200"> 
+             <button type="button" data-dismiss="modal" class="button w-20 border text-gray-700 mr-1">Cancel</button>
+              <button type="submit" class="button w-20 bg-theme-1 text-white">Send</button>
+             </div>
+    </form> 
+
+
+
+
+</div>
  </div>
 
                             </div>
@@ -241,7 +294,7 @@ function showAlert(photo){
 
 function senddel(){
     
-    window.location="/manage/photo/delete/"+$('#app_id').val();
+    window.location="/manage/services/delete/"+$('#app_id').val();
    
 }
 </script>

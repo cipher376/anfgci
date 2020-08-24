@@ -1,4 +1,7 @@
-<?php   use \App\Http\Controllers\ManageController; ?>
+<?php   use \App\Http\Controllers\ManageController;
+$churchid="";
+$eventid="";
+?>
 @extends('layouts.manage')
 @section('content')
 
@@ -6,8 +9,13 @@
 <!-- BEGIN: Top Bar -->
 <div class="top-bar">
 @foreach($churches as $church)
-<?php $services=ManageController::showServices($church->churchID); ?>
-<?php $photos=ManageController::pullEventPhotos($church->churchID); ?>
+<?php $services=ManageController::showServices($church->churchID);
+
+$churchid=$church->churchID;
+$eventid=$event->eventID;
+
+?>
+<?php $photos=ManageController::pullEventPhotos($event->eventID); ?>
                     <!-- BEGIN: Breadcrumb -->
                     <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Administration</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="/manage/churches" class="breadcrumb--active">Branch</a>  <i data-feather="chevron-right" class="breadcrumb__icon"></i>{{ strip_tags(htmlspecialchars_decode(substr($church->name, 0,70) ))}} </div>
                     <!-- END: Breadcrumb -->
@@ -83,10 +91,7 @@
                     <h2 class="intro-y font-medium text-xl sm:text-2xl">
                    {{ $event->title }}
                     </h2>
-                    <BR/>
-                  
-                    <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview2" class="button w-32 mr-2 mb-2 flex items-center justify-center bg-theme-9 text-white"> <i data-feather="plus" class="w-4 h-4 mr-2"></i> Add Photo </a>
-                  
+                   
                     <div class="intro-y text-gray-700 mt-3 text-xs sm:text-sm"><b> Posted </b> <span class="mx-1">•</span> {{ \Carbon\Carbon::parse($event->created_at)->diffForHumans() }} 
                    <span style="padding-left:20px"><b> Start time</b></span> <span class="mx-1">•</span> {{$event->startTime}}
                    <span style="padding-left:20px"><b> End time</b></span> <span class="mx-1">•</span> {{$event->endTime}}
@@ -105,25 +110,41 @@
                     <!-- BEGIN: Comments -->
                    <br/>
                     <h4 class="intro-y font-medium text-xl sm:text-2xl" style="font-size:18px">
-                   Photo
+                  Photos
+                 
                     </h4>
+<br/>
+                    <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview2" class="button w-32 mr-2 mb-2 flex items-center justify-center bg-theme-9 text-white"> <i data-feather="plus" class="w-4 h-4 mr-2"></i> Add Photo </a>
+                  
                     <div class="grid grid-cols-12 gap-5 mt-5 pt-5 border-t border-theme-5">
                         @foreach($photos as $photo)   
-                         
-                         <a href="javascript:;" data-toggle="modal" data-target="#add-item-modal" class="intro-y block col-span-12 sm:col-span-4 xxl:col-span-3">
-                                <div class="box rounded-md p-3 relative zoom-in">
+                            
+                         <span class="intro-y block col-span-12 sm:col-span-4 xxl:col-span-3">
+                        
+                         <div class="box rounded-md p-3 relative zoom-in">
+                        <a href="/manage/church/{{$church->churchID}}/event/{{$event->eventID}}/photo/{{$photo->id}}">
                                     <div class="flex-none pos-image relative block">
                                       
                                             <img  src="{{$photo->url}}" style="width:100%">
                                       
                                     </div>
+</a>
                                     <div class="block font-medium text-center truncate mt-3">{{$photo->title}}</div>
+                                    <div style="width:100%">
+                                    <a id="deleteUser{{$photo->photoID}}" data-userid="{{$photo->photoID}}" href="javascript:void(0)" onclick="showAlert({{$photo->photoID}});" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Delete this photo">
+                                        <i class="w-3 h-3 fill-current" data-feather="trash-2"></i> 
+                  </a>
+                                    </div>
                                 </div>
-                            </a>
-                            
+                               
+                  </span>
+                             
                             @endforeach
+
+                            
                     </div>
-                   
+                    <br/>
+                   {{ $photos->links() }}
 
                     
                     <!-- END: Comments -->
@@ -246,7 +267,7 @@ function showAlert(photo){
 
 function senddel(){
     
-    window.location="/manage/photo/delete/"+$('#app_id').val();
+    window.location="/manage/church/{{$churchid}}/events/{{$eventid}}/photo/delete/"+$('#app_id').val();
    
 }
 </script>

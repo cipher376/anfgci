@@ -1,3 +1,7 @@
+
+<?php   use \App\Http\Controllers\ManageController;
+
+?>
 @extends('layouts.manage')
 @section('content')
 
@@ -89,12 +93,14 @@
                                     <div class="flex sm:justify-center items-center">
                                     <a class="flex items-center mr-3" href="/manage/churches/view/{{ $church->churchID }}"> <i data-feather="eye" class="w-4 h-4 mr-1"></i> Detail </a>
                                      
-                                       
+                                       <?php $right= ManageController::right($church->churchID );
+                                       if($right==1){
+                                       ?>
                                             <a class="flex items-center mr-3" href="/manage/churches/edit/{{ $church->churchID }}"> <i data-feather="check-square" class="w-4 h-4 mr-1"></i> Edit </a>
                                       
                                             <a class="flex items-center text-theme-6" id="deleteUser{{ $church->churchID}}" data-userid="{{$church->churchID}}" href="javascript:void(0)" onclick="showAlert({{ $church->churchID}});" > <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Delete </a>
                                        
-                                        
+                                <?php }?>
                                   
                                     </div>
                                 </td>

@@ -1,5 +1,5 @@
 <?php   use \App\Http\Controllers\ManageController; ?>
-@extends('layouts.manage')
+@extends('layouts.pastor')
 @section('content')
 
 
@@ -8,7 +8,7 @@
 @foreach($churches as $church)
 <?php $services=ManageController::showServices($church->churchID) ?>
                     <!-- BEGIN: Breadcrumb -->
-                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Administration</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="/manage/churches" class="breadcrumb--active">Branch</a>  <i data-feather="chevron-right" class="breadcrumb__icon"></i>{{ strip_tags(htmlspecialchars_decode(substr($church->name, 0,70) ))}} </div>
+                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Pastor</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="/manage/churches" class="breadcrumb--active">Branch</a>  <i data-feather="chevron-right" class="breadcrumb__icon"></i>{{ strip_tags(htmlspecialchars_decode(substr($church->name, 0,70) ))}} </div>
                     <!-- END: Breadcrumb -->
                     <!-- BEGIN: Search -->
                    
@@ -65,7 +65,7 @@
                     <div class="col-span-12 lg:col-span-4 xxl:col-span-3 flex lg:block flex-col-reverse">
 
                     
-         @include('layouts.Church_Sidebar')
+         @include('layouts.pastor_church_sidebar')
                        
                     </div>
                     <!-- END: Profile Menu -->
@@ -97,7 +97,7 @@
                         <span class="intro-y block col-span-12 sm:col-span-4 xxl:col-span-3">
                         
                         <div class="box rounded-md p-3 relative zoom-in">
-                       <a href="/manage/church/view/photodetail/{{ $photo->photoID }}">
+                       <a href="/pastor/church/view/photodetail/{{ $photo->photoID }}">
                                    <div class="flex-none pos-image relative block">
                                      
                                            <img  src="{{$photo->url}}" style="width:100%">

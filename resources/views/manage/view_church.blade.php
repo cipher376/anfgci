@@ -74,7 +74,7 @@
                         <div class="intro-y box lg:mt-5">
                             <div class="flex items-center p-5 border-b border-gray-200">
                                 <h2 class="font-medium text-base mr-auto">
-                                    Church Information
+                                    Information
                                 </h2>
                             </div>
                             <div class="p-5">

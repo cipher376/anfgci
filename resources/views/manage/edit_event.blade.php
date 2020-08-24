@@ -1,12 +1,22 @@
-<?php   use \App\Http\Controllers\ManageController; ?>
+<?php   use \App\Http\Controllers\ManageController;
+$churchid="";
+$eventid="";
+?>
 @extends('layouts.manage')
 @section('content')
 
 
 <!-- BEGIN: Top Bar -->
+<?php $countries=ManageController::showCountries() ;?>
 <div class="top-bar">
 @foreach($churches as $church)
-<?php $services=ManageController::showServices($church->churchID) ?>
+<?php $services=ManageController::showServices($church->churchID);
+
+$churchid=$church->churchID;
+$eventid=$event->eventID;
+
+?>
+<?php $photos=ManageController::pullEventPhotos($church->churchID); ?>
                     <!-- BEGIN: Breadcrumb -->
                     <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Administration</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="/manage/churches" class="breadcrumb--active">Branch</a>  <i data-feather="chevron-right" class="breadcrumb__icon"></i>{{ strip_tags(htmlspecialchars_decode(substr($church->name, 0,70) ))}} </div>
                     <!-- END: Breadcrumb -->
@@ -57,7 +67,7 @@
 
 <div class="intro-y flex items-center mt-8">
                     <h2 class="text-lg font-medium mr-auto">
-                    {{ ucfirst($church->name) }}
+                    {{ ucfirst($church->name) }} | Edit event
                     </h2>
                 </div>
                 <div class="grid grid-cols-12 gap-6">
@@ -71,74 +81,83 @@
                     <!-- END: Profile Menu -->
                     <div class="col-span-12 lg:col-span-8 xxl:col-span-9">
                         <!-- BEGIN: Display Information -->
-                        <div class="lg:mt-5">
-                            
-                           <h2 class="font-medium text-base mr-auto">
-                                   Photo Album
-                                </h2>
-                               <br/>
-                        </div>
+                       
  
-                        <div class="w-full sm:w-auto flex mt-4 sm:mt-0" style="text-align:right">
-                        <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview2"  class="button text-white bg-theme-1 shadow-md mr-2" >Add Photo</a>
                         
-                    </div><br/> 
                         <div class="intro-y col-span-12 md:col-span-6">
 
-                        <?php if(empty($photos)){?>
-
-<div class="rounded-md flex items-center px-5 py-4 mb-2 bg-theme-17 text-theme-11"> <i data-feather="alert-circle" class="w-6 h-6 mr-2"></i> No records found </div>
-
-<?php }else{?>
-    <div class="grid grid-cols-12 gap-5 mt-5 pt-5 border-t border-theme-5">
-
-                            @foreach($photos as $photo)
-                       
-                        <span class="intro-y block col-span-12 sm:col-span-4 xxl:col-span-3">
-                        
-                        <div class="box rounded-md p-3 relative zoom-in">
-                       <a href="/manage/church/view/photodetail/{{ $photo->photoID }}">
-                                   <div class="flex-none pos-image relative block">
-                                     
-                                           <img  src="{{$photo->url}}" style="width:100%">
-                                     
-                                   </div>
-</a>
-                                   <div class="block font-medium text-center truncate mt-3">{{$photo->title}}
-
-                                   <br/> {{ \Carbon\Carbon::parse($photo->created_at)->diffForHumans() }}
-                                   </div>
-                                   <div style="width:100%">
-                                    
-                                    <a id="deleteUser{{ $photo->photoID}}" data-userid="{{$photo->photoID}}" href="javascript:void(0)" onclick="showAlert({{ $photo->photoID}});" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Delete this photo"> <i class="w-3 h-3 fill-current" data-feather="trash-2"></i> </a>
-                          
-                                   </div>
-                               </div>
-                              
-                 </span>
-
-
-
-                        @endforeach
+                        <div class="intro-y news p-5 box mt-8">
+                    <!-- BEGIN: Blog Layout -->
+                   
+                    <form  action="/manage/church/{{$church->churchID }}/events/update/{{$event->eventID}}/" method="POST" >
+                    {{ method_field("PUT")}}
+                    {{ csrf_field() }} 
+                    <a href="{{ URL::previous() }}"><u>Go back to events</u></a>
+         <div class="p-5 grid grid-cols-12 gap-4 row-gap-3">
+             <div class="col-span-12 sm:col-span-12"><label>Title</label> 
+             <input name="title" type="text" class="input w-full border mt-2 flex-1" placeholder="title" value="{{$event->title}}" required> </div>
+            
+               <div class="col-span-12 sm:col-span-12">  <label>Start time</label> 
+             <input name="starttime" type="text" class="datepicker input w-56 border block mx-auto" placeholder="Start time" value="{{$event->startTime}}" required> </div>
+             <div class="col-span-12 sm:col-span-12"> <label>End time</label> 
+             <input name="endtime" type="text" class="datepicker input w-56 border block mx-auto" placeholder="End time" value="{{$event->endTime}}" required> </div>
+           
+             
+             <div class="col-span-12 sm:col-span-12"><label>Country</label>
+             <select name="country" class="input w-full border mt-2" style="width:100%">
+                     
+                     @foreach($countries as $country)
+                      <option>{{ $country->country_name}}</option>
+                      @endforeach
+                  </select>
 </div>
 
-<?php }?>
+<div class="col-span-12 sm:col-span-12"><label>State</label> 
+             <input name="state" type="text" class="input w-full border mt-2 flex-1" placeholder="state" value="{{$event->state}}" required> </div>
+     
+             
+             <div class="col-span-12 sm:col-span-12"><label>Town</label> 
+             <input name="town" type="text" class="input w-full border mt-2 flex-1" placeholder="town" value="{{$event->town}}" required> </div>
+ 
+             <div class="col-span-12 sm:col-span-12"> <label>Note</label> 
+             <textarea data-feature="basic" class="summernote" name="note" required>{{ stripslashes($event->note) }}</textarea>
+ </div>
+            
+            
+                                    
+         </div>
+         <div class="px-5 py-3 text-right border-t border-gray-200"> <button type="button" data-dismiss="modal" class="button w-20 border text-gray-700 mr-1">Cancel</button> <button type="submit" class="button w-20 bg-theme-1 text-white">Send</button> </div>
+    </form>
+                   
+                
+                </div>
+                   
+                   
+                
+                   
+                    <!-- END: Blog Layout -->
+                    <!-- BEGIN: Comments -->
+                   
+                   
+                   
+                    
+                    <!-- END: Comments -->
+                </div>
                     </div>
-<br/><br/>
-                    {{ $photos->links() }}
                         <!-- END: Display Information -->
                         <!-- BEGIN: Personal Information -->
                         
                         <!-- END: Personal Information -->
                     </div>
+
+                   
                 </div>
 
               
        
 
 
-                <div class="grid grid-cols-12 gap-6 mt-5">
-                    <div class="intro-y col-span-12 lg:col-span-12">
+               
                         <!-- BEGIN: Single Item -->
                         
                         <!-- END: Single Item -->
@@ -150,7 +169,8 @@
 
 
                         <!-- BEGIN: Multiple Item -->
-                       
+                      
+
 
                                 <div class="modal" id="header-footer-modal-preview">
      <div class="modal__content">
@@ -178,7 +198,7 @@
              <h2 class="font-medium text-base mr-auto">New Photo</h2> 
              
          </div>
-         <form  action="/manage/churches/photo/{{ $church->churchID }}" method="post" enctype="multipart/form-data">
+         <form  action="/manage/church/{{ $church->churchID }}/events/photo/{{ $event->eventID }}" method="post" enctype="multipart/form-data">
          {{ csrf_field() }} 
          <div class="p-5 grid grid-cols-12 gap-4 row-gap-3">
              <div class="col-span-12 sm:col-span-12"> <label>Title</label> 
@@ -241,7 +261,7 @@ function showAlert(photo){
 
 function senddel(){
     
-    window.location="/manage/photo/delete/"+$('#app_id').val();
+    window.location="/manage/church/{{$churchid}}/events/{{$eventid}}/photo/delete/"+$('#app_id').val();
    
 }
 </script>

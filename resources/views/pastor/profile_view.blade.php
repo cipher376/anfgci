@@ -142,19 +142,27 @@
                                             <label>state</label>
                                             <input name="state" type="text" class="input w-full border mt-2" placeholder="Input text" value="{{ $profile->state}}">
                                         </div>
-                                      
+
                                         <div class="mt-3">
+                                            <label>Town</label>
+                                            <input name="town" type="text" class="input w-full border mt-2" placeholder="Input text" value="{{ $profile->town}}">
+                                        </div>
+                                      
+                                       
+                                    </div>
+
+                                  
+                                </div>
+                                <div class="mt-3">
                                             <label>Country</label>
                                             <select name="country" class="input w-full border mt-2" style="width:100%">
-             <option value="">{{ $profile->country}}</option>
+             <option value="{{ $profile->country}}">{{ $profile->country}}</option>
             @foreach($countries as $country)
              <option>{{ $country->country_name}}</option>
              @endforeach
          </select>  </div>
-                                    </div>
-                                </div>
                                 <div class="flex justify-end mt-4">
-                                     <button type="button" class="button w-20 bg-theme-1 text-white ml-auto">Save</button>
+                                     <button type="submit" class="button w-20 bg-theme-1 text-white ml-auto">Save</button>
                                 </div>
                             </div>    </div>
                                 </div>

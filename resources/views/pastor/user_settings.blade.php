@@ -47,6 +47,21 @@
                     </div><!-- END: Notifications -->
                    
                 </div>
+
+                @if ($errors->any())
+
+<div class="rounded-md flex items-center px-5 py-4 mb-2 bg-theme-31 text-theme-6"> 
+    
+   
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+</ul>
+    </div>
+@endif
+
+
                 <!-- END: Top Bar -->
                 @if(session('success'))
 <div class="rounded-md flex items-center px-5 py-4 mb-2 bg-theme-18 text-theme-9"> 
@@ -71,60 +86,36 @@
                     <!-- END: Profile Menu -->
                     <div class="col-span-12 lg:col-span-8 xxl:col-span-9">
                         <!-- BEGIN: Display Information -->
-                        <div class="intro-y box lg:mt-5">
-                            <div class="flex items-center p-5 border-b border-gray-200">
-                                <h2 class="font-medium text-base mr-auto">
-                                    Information
-                                </h2>
-                            </div>
-                            <div class="p-5">
-                                <div class="grid grid-cols-12 gap-5">
-                                    
-                                    <div class="col-span-12 xl:col-span-12">
-                                      
-                                    {{ strip_tags(htmlspecialchars_decode($church->note)) }}      
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                       
                         <!-- END: Display Information -->
                         <!-- BEGIN: Personal Information -->
                         <div class="intro-y box lg:mt-5">
                             <div class="flex items-center p-5 border-b border-gray-200">
                                 <h2 class="font-medium text-base mr-auto">
-                                    Location
+                                    Add/Rights settings
                                 </h2>
                             </div>
-                            <div class="p-5">
-                                <div class="grid grid-cols-12 gap-5">
-                                    
-                                    <div class="col-span-12 xl:col-span-6">
-                                        <div>
-                                            <label>Country</label>
-                                            <input type="text" class="input w-full border bg-gray-100 cursor-not-allowed mt-2" placeholder="Input text" value="{{ strip_tags(htmlspecialchars_decode($church->country)) }}" disabled>
+                            <div class="p-5"> 
+                            <form  action="/manage/church/user_settings/{{ $church->churchID }}" method="post">
+                            {{ csrf_field() }}   
+                            <div>
+                                            <label>Enter pastor email</label>
+                                            <input name="email" type="text" class="input w-full border bg-gray-100 cursor-not-allowed mt-2" placeholder="Input text" value=" {{ old('email') }}" >
                                         </div>
-                                        <div class="mt-3">
-                                            <label>State</label>
-                                            <input type="text" class="input w-full border mt-2" placeholder="Input text" value="{{ strip_tags(htmlspecialchars_decode($church->state)) }}" disabled>
-                                        </div>
-                                      
-                                       
-                                    </div>
-                                    <div class="col-span-12 xl:col-span-6">
-                                        <div>
-                                            <label>Date Created</label>
-                                            <input type="text" class="input w-full border mt-2" placeholder="Input text" value="{{ strip_tags(htmlspecialchars_decode($church->est_date)) }}">
-                                        </div>
-                                        <div class="mt-3">
-                                            <label>Town</label>
-                                            <input type="text" class="input w-full border mt-2" placeholder="Input text" value="{{ strip_tags(htmlspecialchars_decode($church->town)) }}">
-                                        </div>
-                                       
-                                       
-                                    </div>
-                                     
-                                </div>
+
+                                        <div class="mt-3"> <label><b>Access right</b></label>
+     <div class="flex flex-col sm:flex-row mt-2">
+         <div class="flex items-center text-gray-700 mr-2"> <input type="radio" class="input border mr-2" id="horizontal-radio-chris-evans" name="right" value="1"> <label class="cursor-pointer select-none" for="horizontal-radio-chris-evans">Full Access</label> </div>
+         <div class="flex items-center text-gray-700 mr-2 mt-2 sm:mt-0"> <input type="radio" class="input border mr-2" id="horizontal-radio-liam-neeson" name="right" value="2"> <label class="cursor-pointer select-none" for="horizontal-radio-liam-neeson">Administrate Photo, Services and Report</label> </div>
+     </div>
+
+     <div class="intro-y col-span-12 flex items-center justify-center sm:justify-end mt-5">
+                        
+                         <button class="button w-40 justify-center block bg-theme-1 text-white ml-2">Add</button>
+                     </div>
+ </div>
                                 
+</form>  
                             </div>
                         </div>
                         <!-- END: Personal Information -->

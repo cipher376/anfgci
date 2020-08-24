@@ -57,7 +57,7 @@
 
 <div class="intro-y flex items-center mt-8">
                     <h2 class="text-lg font-medium mr-auto">
-                    {{ ucfirst($church->name) }}
+                    {{ ucfirst($church->name) }} | Event Photo Detail
                     </h2>
                 </div>
                 <div class="grid grid-cols-12 gap-6">
@@ -71,74 +71,50 @@
                     <!-- END: Profile Menu -->
                     <div class="col-span-12 lg:col-span-8 xxl:col-span-9">
                         <!-- BEGIN: Display Information -->
-                        <div class="lg:mt-5">
-                            
-                           <h2 class="font-medium text-base mr-auto">
-                                   Photo Album
-                                </h2>
-                               <br/>
-                        </div>
+                       
  
-                        <div class="w-full sm:w-auto flex mt-4 sm:mt-0" style="text-align:right">
-                        <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview2"  class="button text-white bg-theme-1 shadow-md mr-2" >Add Photo</a>
                         
-                    </div><br/> 
                         <div class="intro-y col-span-12 md:col-span-6">
 
-                        <?php if(empty($photos)){?>
-
-<div class="rounded-md flex items-center px-5 py-4 mb-2 bg-theme-17 text-theme-11"> <i data-feather="alert-circle" class="w-6 h-6 mr-2"></i> No records found </div>
-
-<?php }else{?>
-    <div class="grid grid-cols-12 gap-5 mt-5 pt-5 border-t border-theme-5">
-
-                            @foreach($photos as $photo)
-                       
-                        <span class="intro-y block col-span-12 sm:col-span-4 xxl:col-span-3">
-                        
-                        <div class="box rounded-md p-3 relative zoom-in">
-                       <a href="/manage/church/view/photodetail/{{ $photo->photoID }}">
-                                   <div class="flex-none pos-image relative block">
-                                     
-                                           <img  src="{{$photo->url}}" style="width:100%">
-                                     
-                                   </div>
-</a>
-                                   <div class="block font-medium text-center truncate mt-3">{{$photo->title}}
-
-                                   <br/> {{ \Carbon\Carbon::parse($photo->created_at)->diffForHumans() }}
-                                   </div>
-                                   <div style="width:100%">
-                                    
-                                    <a id="deleteUser{{ $photo->photoID}}" data-userid="{{$photo->photoID}}" href="javascript:void(0)" onclick="showAlert({{ $photo->photoID}});" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Delete this photo"> <i class="w-3 h-3 fill-current" data-feather="trash-2"></i> </a>
-                          
-                                   </div>
-                               </div>
-                              
-                 </span>
-
-
-
-                        @endforeach
-</div>
-
-<?php }?>
+                        <div class="intro-y news p-5 box mt-8">
+                    <!-- BEGIN: Blog Layout -->
+                   
+                    <h2 class="intro-y font-medium text-xl sm:text-2xl">
+                   {{ $event->title }} 
+                    </h2>
+                    <div class="intro-y text-gray-700 mt-3 text-xs sm:text-sm"> Posted  <span class="mx-1">•</span> {{ \Carbon\Carbon::parse($event->created_at)->diffForHumans() }} <span class="mx-1">•</span> <a href="{{ URL::previous() }}"><u>Go back to events</u></a></div>
+                    <div class="intro-y mt-6">
+                        <div class="news__preview image-fit">
+                            <img alt="Midone Tailwind HTML Admin Template" class="rounded-md" src=" {{ $event->url }}">
+                        </div>
                     </div>
-<br/><br/>
-                    {{ $photos->links() }}
+                   
+                    <div class="intro-y text-justify leading-relaxed">
+                        <br/>
+                   <?php  echo stripslashes($event->caption) ?>
+                       </div>
+                   
+                    <!-- END: Blog Layout -->
+                    <!-- BEGIN: Comments -->
+                   
+                   
+                    <!-- END: Comments -->
+                </div>
+                    </div>
                         <!-- END: Display Information -->
                         <!-- BEGIN: Personal Information -->
                         
                         <!-- END: Personal Information -->
                     </div>
+
+                   
                 </div>
 
               
        
 
 
-                <div class="grid grid-cols-12 gap-6 mt-5">
-                    <div class="intro-y col-span-12 lg:col-span-12">
+               
                         <!-- BEGIN: Single Item -->
                         
                         <!-- END: Single Item -->
@@ -150,7 +126,8 @@
 
 
                         <!-- BEGIN: Multiple Item -->
-                       
+                      
+
 
                                 <div class="modal" id="header-footer-modal-preview">
      <div class="modal__content">
