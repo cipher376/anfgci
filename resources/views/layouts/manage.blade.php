@@ -1,5 +1,8 @@
 
+<?php if(Auth::user()->role !='manage'){ ?>
 
+    <script>window.location = "manage/errorpage";</script>
+<?php } ?>
 <!DOCTYPE html>
 <!--
 Template Name: Midone - HTML Admin Dashboard Template

@@ -63,6 +63,11 @@ class ManageController extends Controller
         return view('manage.add_video');
     }
 
+    public function error()
+    {
+        
+        return view('manage.errorpage');
+    }
 
     public function download($file_name,$path) {
         $file_path = public_path($path.'/'.$file_name);

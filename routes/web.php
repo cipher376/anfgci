@@ -220,7 +220,7 @@ Route::get('manage/churches/report/delete/{report}', 'ManageController@delete_re
 Route::get('manage/church/{church}/pastors/', 'ManageController@pastor_list')->name('pastor_list');
 Route::get('manage/church/pastor/delete/{pastor}', 'ManageController@pastor_delete')->name('pastor_delete');
 Route::get('manage/church/download/{filename}/folder/{path}', 'ManageController@download')->name('download');
-
+Route::get('manage/errorpage', 'ManageController@error')->name('error');
 
 ////////////////////////// API START HERE /////////////////////////////////////////////////////////
 

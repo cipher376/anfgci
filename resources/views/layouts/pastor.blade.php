@@ -1,4 +1,7 @@
+<?php if(Auth::user()->role !='manage-sub'){ ?>
 
+<script>window.location = "/manage/errorpage";</script>
+<?php } ?>
 
 <!DOCTYPE html>
 <!--

@@ -22,12 +22,14 @@ class LoginController extends Controller
 
     use AuthenticatesUsers;
 
+   
+
     /**
      * Where to redirect users after login.
      *
      * @var string
      */
-    //protected $redirectTo = '/home';
+        
 
     public function redirectTo(){
         
@@ -37,6 +39,7 @@ class LoginController extends Controller
         // Check user role
         switch ($role) {
             case 'manage':
+                
                     return '/manage';
                 break;
              case 'manage-sub':
@@ -50,6 +53,10 @@ class LoginController extends Controller
                 break;
         }
     }
+
+
+   
+
 
     /**
      * Create a new controller instance.
