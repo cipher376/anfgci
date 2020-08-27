@@ -13,6 +13,8 @@ use App\photos;
 use App\church_services;
 use App\church_photos;
 use App\audios;
+use App\books;
+use App\reports;
 
 class PastorController extends Controller
 {
@@ -413,7 +415,115 @@ class PastorController extends Controller
        
     }
 
+    public function book()
+    {
+        $books = DB::select('select * from books left join resources using(resourceID)');
+        return view('pastor.books',['books'=>$books]);
+    }
 
+    public function add_book()
+    {
+        return view('pastor.add_book');
+    }
+
+    public function store_book()    
+{
+    $validator=$this->validate(request(),[
+        'title'=>'required|string',
+        'author'=>'required|string',
+        'note'=>'required|string',
+        'type'=>'required|string',
+        'imgfile'=>'required|mimes:jpeg,JPEG,png',
+        'file' => 'required|mimes:pdf,docx,doc',
+       
+        
+        
+        ],
+        [
+            'title.required'=>'Enter book title ',
+            'artist.required'=>'Enter author name ',
+            'note.required'=>'Enter a note for book ',
+            'imgfile.required'=>'Upload book cover',
+            'file.required'=>'Upload an PDF file of book',
+            
+            
+            ]);
+
+            if(count(request()->all()) > 0){
+
+               
+                $resourceid="";
+                $imgfile= request()->file('imgfile');
+                $audiofile= request()->file('file');
+
+            
+
+                  //////// move imgfile to photos folder ////////////////
+
+        $original_filename = strtolower(trim($imgfile->getClientOriginalName()));
+        $fileName =  time().rand(100,999).$original_filename;
+        $filePath = 'photos';
+        $filePathdb = asset('/photos/'.$fileName);
+        $imgfile->move($filePath,$fileName);
+
+         //////// move file to books folder ////////////////
+
+         $original_audioname = strtolower(trim($audiofile->getClientOriginalName()));
+         $fileName2 =  time().rand(100,999).$original_audioname;
+         $filePath2 = 'books';
+         $filePath2db = asset('/books/'.$fileName2);
+         $audiofile->move($filePath2,$fileName2);
+
+
+         $resource = new resources;
+
+         $resource->title = request()->input('title');
+         $resource->type = 3;
+         
+         $resource->note = request()->input('note');
+         $resource->url =$filePath2db;
+         $resource->isPublic= 0;
+         $resource->uploadby=auth()->user()->name;
+         $resource->artist = request()->input('author');
+         if($resource->save()){
+            $resourceid=$resource->id;
+
+            $photos = new photos();
+
+                    $photos->type= '5';
+                    $photos->title= request()->input('title');
+                    $photos->caption=request()->input('note');
+                    $photos->url=$filePathdb;
+                   if($photos->save()){
+
+
+
+                    $books = new books;
+
+                   
+                    $books->userID=auth()->user()->id;
+                    $books->bookType=request()->input('type');
+                    $books->resourceID= $resourceid;
+                    $books->status=0;
+                    $books->photoID=$photos->id;
+                    $books->save();
+ 
+
+            return redirect()->back()->withSuccess('Book upload succesful.');
+
+
+         }
+                
+              
+               
+
+
+
+            }
+   
+}
+
+}
 
     public function churches()
     {
@@ -523,6 +633,91 @@ class PastorController extends Controller
         ->where(['churchID' => $id])
         ->get();
         return view('pastor.church_report',['reports'=>$reports],['church'=>$id]);
+    }
+
+
+    public function store_report($id)
+    {
+        //1.validate data
+        
+        $validator=$this->validate(request(),[
+        'topic'=>'required|string',
+        'date'=>'required|string',
+        'file' => 'required|mimes:pdf,docx,doc',
+        ],
+        [
+            'topic.required'=>'Type in Title of the report you want to Upload ',
+            'date.required'=>'Choose date ',
+            'file.required'=>'Please Upload a PDF/doc file ',
+            
+            
+            ]);
+
+            if(count(request()->all()) > 0){
+
+            ////// move file to upload folder ////////////////
+
+            $file = request()->file('file');
+            $fileName = $file->getClientOriginalName();
+            $filePath = 'report';
+            $filePathdb=asset('/report/'.$fileName);
+            $file->move($filePath,$fileName);
+            $user = auth()->user()->id;
+
+            //////////// create data //////////////////////
+
+           
+
+           
+
+            $resource = new resources;
+
+            $resource->title = request()->input('topic');
+            $resource->type = 9;
+            
+            $resource->note ='report';
+            $resource->url =$filePathdb;
+            $resource->isPublic= 0;
+            $resource->uploadby=auth()->user()->name;
+            $resource->artist = auth()->user()->name;;
+           
+                   if($resource->save()){ 
+                       
+                    $reports = new reports;
+                    $reports->churchID = $id;
+                    $reports->reportMonth = request()->input('date');
+                    $reports->resourceID = $resource->id;
+                    $reports->userID =auth()->user()->id;
+                    $reports->save();
+
+                       
+
+                    }     
+                
+           
+
+
+           ////////// redirect to url //////////////////////////
+
+           return redirect()->back()->withSuccess('Report uploaded succesfully !');
+                
+            }else{
+
+
+                 return redirect()->back()->withErrors($validator)->withInput();
+
+            }
+                ///// move uploaded file to folder
+
+
+           
+
+            
+        //2. create data
+
+        //3. redirect url
+
+            
     }
 
 
@@ -749,6 +944,18 @@ class PastorController extends Controller
 
         return view('pastor.photo_album',['churches'=>$churches],['photos'=>$photos]);
     }
+
+    public function view_book($id){
+
+        $books= DB::table('books')
+        ->select('resources.title','resources.note','resources.artist','resources.uploadby','books.id','books.status','books.bookType')    
+        ->join('photos','photos.photoID','=','books.photoID')
+       ->join('resources','resources.resourceID','=','books.resourceID')
+       ->where('id', $id)
+       ->get();
+   
+             return view('pastor.view_book',['books'=>$books]);
+       }
 
 
     public function showChurch($id)
@@ -1473,6 +1680,22 @@ public static function showAudioCover($id){
 }
 }
 
+public static function showbookCover($id){
+    $photourl="";
+
+    $books = DB::select('select * from books left join resources using(resourceID)  where id ='.$id.' ');
+    foreach($books as $book){
+
+       $photos= DB::select('select * from photos where photoID='.$book->photoID);
+       foreach($photos as $photo){
+           $photourl=$photo->url;
+
+       }
+       return $photourl;
+
+}
+}
+
 
 public static function showAudiotitle($id){
     $resourcetitle="";
@@ -1550,6 +1773,64 @@ public function audioallow(Request $request){
     }
 }
 
+
+
+public function bookallow(Request $request){
+    switch ($request->input('action')) {
+        case 'activate':
+            
+
+            if(isset($_POST['book'])){
+                if (is_array($_POST['book'])) {
+                     foreach($_POST['book'] as $value){
+                        DB::table('books')->where('id', $value)->update(['status' => '1']);
+                     }
+
+                     return redirect()->back()->withSuccess('Book set to active mode sucessfuly.');
+
+                  } else {
+                    $value = $_POST['book'];
+                    DB::table('books')->where('id', $value)->update(['status' => '1']);
+                    return redirect()->back()->withSuccess('Book set to active mode sucessfuly.');
+               }
+           }else{
+
+
+            return redirect()->back()->withErrors('Please check atleast one Audio to activate');
+           }
+
+                   
+
+
+            break;
+
+        case 'deactivate':
+            
+            if(isset($_POST['book'])){
+                if (is_array($_POST['book'])) {
+                     foreach($_POST['book'] as $value){
+                        DB::table('books')->where('id', $value)->update(['status' => '0']);
+                     }
+
+                     return redirect()->back()->withSuccess('Book set to inactive mode sucessfuly.');
+
+                  } else {
+                    $value = $_POST['book'];
+                    DB::table('books')->where('id', $value)->update(['status' => '0']);
+                    return redirect()->back()->withSuccess('Book set to inactive mode sucessfuly.');
+               }
+           }else{
+
+
+            return redirect()->back()->withErrors('Please check atleast one book to deactivate');
+           }
+
+
+            break;
+
+        
+    }
+}
 
 public function delete_audio($id)
     

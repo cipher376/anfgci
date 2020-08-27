@@ -19,6 +19,7 @@ use App\church_services;
 use App\events;
 use App\eventphotos;
 use App\reports;
+use App\books;
 
 class ManageController extends Controller
 {
@@ -61,6 +62,29 @@ class ManageController extends Controller
     {
         
         return view('manage.add_video');
+    }
+
+    public function book()
+    {
+        $books = DB::select('select * from books left join resources using(resourceID)');
+        return view('manage.books',['books'=>$books]);
+    }
+
+    public function my_book()
+    {
+        $books = DB::select('select * from books left join resources using(resourceID) where userID='.auth()->user()->id);
+        return view('manage.my_books',['books'=>$books]);
+    }
+
+    public function my_audios()
+    {
+        $audios = DB::select('select * from audios left join resources using(resourceID) where userID='.auth()->user()->id);
+         return view('manage.my_audios',['audios'=>$audios]);
+    }
+
+    public function add_book()
+    {
+        return view('manage.add_book');
     }
 
     public function error()
@@ -117,6 +141,37 @@ class ManageController extends Controller
     $sermons = DB::select('select * from sermons order by sermonID DESC');
      
     return view('manage.sermons',['sermons'=>$sermons]);
+
+    }
+
+    public function my_church()
+    {
+        $pastorRight="";
+        //$pastors = DB::select('select * from pastors where id='.auth()->user()->id);
+        $pastors= DB::table('pastors')->where('userID', auth()->user()->id)->get(); 
+        if($pastors->count()>0){
+
+            foreach($pastors as $pastor){
+
+                $pastorRight=$pastor->pastorRight;
+            }
+
+        $churches = DB::select('select * from pastors left join churches using(churchID) where userID='.auth()->user()->id.' order by churchID DESC');
+      
+        }else{
+            $churches=array();;
+
+        }
+          return view('manage.my_church',['churches'=>$churches]);
+
+    }
+
+    public function my_sermons()
+    {
+
+    $sermons = DB::select('select * from sermons where userID='.auth()->user()->id.' order by sermonID DESC ');
+     
+    return view('manage.my_sermons',['sermons'=>$sermons]);
 
     }
 
@@ -496,7 +551,7 @@ public function church_report($id){
                     $reports->churchID = $id;
                     $reports->reportMonth = request()->input('date');
                     $reports->resourceID = $resource->id;
-                    
+                    $reports->userID =auth()->user()->id;
                     $reports->save();
 
                        
@@ -987,11 +1042,23 @@ public function add_pastor($id){
     
     {
         $sermons = DB::delete('delete from churches where churchID='.$id);
+        $pastors = DB::delete('delete from pastors where churchID='.$id);
         return redirect()->back()->withSuccess('one record deleted succesfuly.');
    // return view('manage.edit_sermon',['sermons'=>$sermons]);
        
     }
 
+    public function view_book($id){
+
+     $books= DB::table('books')
+     ->select('resources.title','resources.note','resources.artist','resources.uploadby','books.id','books.status','books.bookType')    
+     ->join('photos','photos.photoID','=','books.photoID')
+    ->join('resources','resources.resourceID','=','books.resourceID')
+    ->where('id', $id)
+    ->get();
+
+          return view('manage.view_book',['books'=>$books]);
+    }
 
     public function pastor_delete($id)
     
@@ -1124,6 +1191,52 @@ public function add_pastor($id){
         DB::table('reports')->where('id', $id)->delete();
        
         return redirect()->back()->withSuccess('report deleted succesfuly.');
+       
+    }
+
+
+    public function delete_book($id)
+    
+    {
+        $existFile=""; 
+        $existFile2=""; 
+
+        $books= DB::table('books')
+    ->select('resources.url','resources.resourceID','books.photoID')
+    ->join('resources','resources.resourceID','=','books.resourceID')
+    ->where(['id' => $id])
+    ->first();
+
+    $existFile=$books->url;
+    
+      
+                if(file_exists(public_path('/books/'.basename($existFile)))){
+
+                      unlink(public_path('/books/'.basename($existFile)));
+                  
+                   }
+
+
+  $books2= DB::table('books')
+                   ->select('photos.url','photos.photoID')
+                   ->join('photos','photos.photoID','=','books.photoID')
+                   ->where(['id' => $id])
+                   ->first();
+
+                   $existFile2=$books2->url;
+    
+      
+                   if(file_exists(public_path('/photos/'.basename($existFile2)))){
+   
+                         unlink(public_path('/photos/'.basename($existFile2)));
+                     
+                      }
+
+       DB::table('resources')->where('resourceID', $books->resourceID)->delete();
+        DB::table('photos')->where('photoID', $books->photoID)->delete();
+        DB::table('books')->where('id', $id)->delete();
+       
+       return redirect()->back()->withSuccess('book deleted succesfuly.');
        
     }
 
@@ -1794,6 +1907,107 @@ $existFile="";
                 }
        
     }
+
+}
+
+
+
+public function store_book()    
+{
+    $validator=$this->validate(request(),[
+        'title'=>'required|string',
+        'author'=>'required|string',
+        'note'=>'required|string',
+        'type'=>'required|string',
+        'imgfile'=>'required|mimes:jpeg,JPEG,png',
+        'file' => 'required|mimes:pdf,docx,doc',
+       
+        
+        
+        ],
+        [
+            'title.required'=>'Enter audio title ',
+            'artist.required'=>'Enter artist name ',
+            'note.required'=>'Enter a note for audio ',
+            'imgfile.required'=>'Upload book cover',
+            'file.required'=>'Upload an PDF file of book',
+            
+            
+            ]);
+
+            if(count(request()->all()) > 0){
+
+               
+                $resourceid="";
+                $imgfile= request()->file('imgfile');
+                $audiofile= request()->file('file');
+
+            
+
+                  //////// move imgfile to photos folder ////////////////
+
+        $original_filename = strtolower(trim($imgfile->getClientOriginalName()));
+        $fileName =  time().rand(100,999).$original_filename;
+        $filePath = 'photos';
+        $filePathdb = asset('/photos/'.$fileName);
+        $imgfile->move($filePath,$fileName);
+
+         //////// move file to books folder ////////////////
+
+         $original_audioname = strtolower(trim($audiofile->getClientOriginalName()));
+         $fileName2 =  time().rand(100,999).$original_audioname;
+         $filePath2 = 'books';
+         $filePath2db = asset('/books/'.$fileName2);
+         $audiofile->move($filePath2,$fileName2);
+
+
+         $resource = new resources;
+
+         $resource->title = request()->input('title');
+         $resource->type = 3;
+         
+         $resource->note = request()->input('note');
+         $resource->url =$filePath2db;
+         $resource->isPublic= 0;
+         $resource->uploadby=auth()->user()->name;
+         $resource->artist = request()->input('author');
+         if($resource->save()){
+            $resourceid=$resource->id;
+
+            $photos = new photos();
+
+                    $photos->type= '5';
+                    $photos->title= request()->input('title');
+                    $photos->caption=request()->input('note');
+                    $photos->url=$filePathdb;
+                   if($photos->save()){
+
+
+
+                    $books = new books;
+
+                   
+                    $books->userID=auth()->user()->id;
+                    $books->bookType=request()->input('type');
+                    $books->resourceID= $resourceid;
+                    $books->status=0;
+                    $books->photoID=$photos->id;
+                    $books->save();
+ 
+
+            return redirect()->back()->withSuccess('Book upload succesful.');
+
+
+         }
+                
+              
+               
+
+
+
+            }
+   
+}
 
 }
 

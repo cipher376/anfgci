@@ -29,6 +29,7 @@ class pastordetail extends Resource
             'audios'=>ManageController::pastorAudios($this->id),
             'videos'=>ManageController::pastorVideos($this->id),
             'sermons'=>ManageController::pastorSermons($this->id),
+            
           
         ];
     }

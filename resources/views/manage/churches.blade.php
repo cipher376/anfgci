@@ -53,12 +53,13 @@
                 </div>
                 <!-- END: Top Bar -->
                 <h2 class="intro-y text-lg font-medium mt-10">
-                   Churches
+                   All Churches
                 </h2>
 <br/>
                
                 <a href="add_church" class="button text-white bg-theme-1 shadow-md mr-2">Add Church </a>
-              
+                <a href="/manage/my_church" class="button w-24 mr-1 mb-2 bg-theme-9 text-white">My Church </a>
+               
                 <div class="grid grid-cols-12 gap-6 mt-5">
 
                
@@ -93,14 +94,12 @@
                                     <div class="flex sm:justify-center items-center">
                                     <a class="flex items-center mr-3" href="/manage/churches/view/{{ $church->churchID }}"> <i data-feather="eye" class="w-4 h-4 mr-1"></i> Detail </a>
                                      
-                                       <?php $right= ManageController::right($church->churchID );
-                                       if($right==1){
-                                       ?>
+                                      
                                             <a class="flex items-center mr-3" href="/manage/churches/edit/{{ $church->churchID }}"> <i data-feather="check-square" class="w-4 h-4 mr-1"></i> Edit </a>
                                       
                                             <a class="flex items-center text-theme-6" id="deleteUser{{ $church->churchID}}" data-userid="{{$church->churchID}}" href="javascript:void(0)" onclick="showAlert({{ $church->churchID}});" > <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Delete </a>
                                        
-                                <?php }?>
+                             
                                   
                                     </div>
                                 </td>

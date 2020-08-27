@@ -72,6 +72,7 @@
                 <a href="add_audio" class="button text-white bg-theme-1 shadow-md mr-2">Add Audio </a>
                               <button class="button w-24 mr-1 mb-2 border text-gray-700" name="action" value="activate">Activate</button> 
                 <button class="button w-24 mr-1 mb-2 border text-gray-700" name="action" value="deactivate">Deactivate</button> 
+                <a href="my_audios" class="button w-24 mr-1 mb-2 bg-theme-9 text-white">My Audios </a>
                
               
                

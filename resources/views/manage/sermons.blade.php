@@ -87,6 +87,9 @@
                 <?php 
             
             }?>
+
+<a href="my_sermons" class="button w-24 mr-1 mb-2 bg-theme-9 text-white">My Sermons </a>
+               
                 <div class="grid grid-cols-12 gap-6 mt-5">
 
                

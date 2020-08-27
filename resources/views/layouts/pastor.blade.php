@@ -133,7 +133,12 @@ License: You must have a valid license purchased only from themeforest(the above
                             <div class="side-menu__title"> Audios</div>
                         </a>
                     </li>
-                  
+                    <li>
+                        <a href="/pastor/book" class="side-menu">
+                            <div class="side-menu__icon"> <i data-feather="book"></i> </div>
+                            <div class="side-menu__title"> Books</div>
+                        </a>
+                    </li>
 
                   
                     <li class="side-nav__devider my-6"></li>

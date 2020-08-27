@@ -1,11 +1,11 @@
-@extends('layouts.manage')
+@extends('layouts.pastor')
 @section('content')
 
 
 <!-- BEGIN: Top Bar -->
 <div class="top-bar">
                     <!-- BEGIN: Breadcrumb -->
-                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Administration</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="" class="breadcrumb--active">New Premium Video</a> </div>
+                    <div class="-intro-x breadcrumb mr-auto hidden sm:flex"> <a href="" class="">Pastor</a> <i data-feather="chevron-right" class="breadcrumb__icon"></i> <a href="" class="breadcrumb--active">New Premium Video</a> </div>
                     <!-- END: Breadcrumb -->
                     <!-- BEGIN: Search -->
                    

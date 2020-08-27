@@ -39,6 +39,9 @@ use App\Http\Resources\pastorspremiumVideosSingle;
 use App\Http\Resources\sermonsingle;
 use App\Http\Resources\eventsingle;
 use App\Http\Resources\eventsinglepage;
+use App\Http\Resources\bookcollection;
+use App\Http\Resources\book;
+use App\Http\Resources\pastorReport;
 use App\User;
 use App\profile;
 use App\photos;
@@ -101,6 +104,7 @@ Route::get('pastor/church/services/{church}', 'PastorController@showChurchservic
 Route::get('pastor/church/{church}/service/sermon/view/{sermon}', 'PastorController@serviceSermonx')->name('serviceSermonx');
 Route::get('pastor/church/events/{church}', 'PastorController@events')->name('events');
 Route::get('pastor/church/{church}/events/detail/{event}', 'PastorController@eventDetail')->name('eventDetail');
+Route::post('pastor/book/activation/', 'PastorController@bookallow')->name('bookallow');
 
 Route::get('/pastor/church/{church}/events/{event}/', 'PastorController@edit_event')->name('edit_event');
 
@@ -111,9 +115,12 @@ Route::get('/pastor/church/{church}/add_report', 'PastorController@add_report')-
 Route::get('pastor/church/user_settings/{church}', 'PastorController@usersettings')->name('usersettings');
 
 Route::get('pastor/church/{church}/pastors/', 'PastorController@pastor_list')->name('pastor_list');
+Route::get('pastor/book', 'PastorController@book')->name('book');
+Route::post('pastor/add_book', 'PastorController@store_book')->name('storebook');
+Route::get('pastor/add_book', 'PastorController@add_book')->name('addbook');
+Route::get('/pastor/book/view/{book}', 'PastorController@view_book')->name('viewbook');
 
-
-
+Route::post('/pastor/church/report/{report}', 'PastorController@store_report')->name('store_report');
 
 Route::get('/manage', 'ManageController@index')->name('manage');
 Route::get('manage/sermons', 'ManageController@sermons')->name('sermons');
@@ -222,6 +229,17 @@ Route::get('manage/church/pastor/delete/{pastor}', 'ManageController@pastor_dele
 Route::get('manage/church/download/{filename}/folder/{path}', 'ManageController@download')->name('download');
 Route::get('manage/errorpage', 'ManageController@error')->name('error');
 
+Route::get('manage/book', 'ManageController@book')->name('book');
+Route::get('manage/add_book', 'ManageController@add_book')->name('add_book');
+Route::post('manage/add_book', 'ManageController@store_book')->name('store_book');
+Route::get('/manage/book/view/{book}', 'ManageController@view_book')->name('view_book');
+Route::get('manage/book/delete/{book}', 'ManageController@delete_book')->name('delete_book');
+
+Route::get('manage/my_books', 'ManageController@my_book')->name('my_book');
+Route::get('manage/my_audios', 'ManageController@my_audios')->name('my_audios');
+Route::get('manage/my_sermons', 'ManageController@my_sermons')->name('my_sermons');
+Route::get('manage/my_church', 'ManageController@my_church')->name('my_church');
+
 ////////////////////////// API START HERE /////////////////////////////////////////////////////////
 
 //////////////////////// users object ////////////////////////////////////////////////////////////
@@ -311,6 +329,29 @@ Route::get('api/churches/{church}', function ($id) {
     return  ChurchResource::collection($churches);
 });
 
+
+Route::get('api/churches/{church}/events', function ($id) {
+
+    $churches= DB::table('events')
+    ->select('events.eventID','events.title','events.note','events.startTime','events.endTime','address.state','address.town','address.country')
+    ->join('address','address.addressID','=','events.addressID') 
+    ->where(['churchID' => $id])
+    ->paginate();
+
+    return new eventcollection($churches);
+});
+
+Route::get('api/churches/{church}/events/page/{page}', function ($id,$id2) {
+
+    $churches= DB::table('events')
+    ->select('events.eventID','events.title','events.note','events.startTime','events.endTime','address.state','address.town','address.country')
+    ->join('address','address.addressID','=','events.addressID') 
+    ->where(['churchID' => $id])
+    ->paginate($id2);
+
+    return new eventcollection($churches);
+});
+
 Route::get('api/churches/{church}/photos/page/all', function ($id) {
    
     $photos= DB::table('church_photos')
@@ -366,7 +407,7 @@ Route::get('api/pastors/{pastor}', function ($id) {
     ->get();
 
     $church= DB::table('pastors')
-    ->select('churches.name')
+    ->select('churches.churchID','churches.name')
     ->join('churches','churches.churchID','=','pastors.churchID')
     ->where(['userID' => $id])
     ->first();
@@ -375,7 +416,7 @@ Route::get('api/pastors/{pastor}', function ($id) {
     
    // return new pastordetail($pastors);
    $collection = pastordetail::collection($pastors);
-   return $collection->additional(['church' => ucwords($church->name)]);
+   return $collection->additional(['churchID' => $church->churchID]);
     
 });
 
@@ -415,6 +456,19 @@ Route::get('api/pastors/{pastor}/audios', function ($id) {
     ->paginate();
     
     return new pastorsAudio($pastors);
+    
+});
+
+
+Route::get('api/pastors/{pastor}/reports', function ($id) {
+
+    $report= DB::table('reports')
+    ->select('reports.id','reports.reportMonth','resources.title','resources.url','resources.created_at')
+    ->join('resources','resources.resourceID','=','reports.resourceID')
+    ->where(['userID' => $id])
+    ->paginate();
+    
+    return new pastorReport($report);
     
 });
 
@@ -673,6 +727,78 @@ Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
             ->paginate();
             
             return new eventsinglephotocollection($events);
+            
+        });
+
+
+        Route::get('api/books', function () {
+
+            $books= DB::table('books')
+            ->select('books.id','photos.url','photos.title','resources.artist','photos.caption','photos.created_at')
+            ->join('photos','photos.photoID','=','books.photoID')
+            ->join('resources','resources.resourceID','=','books.resourceID')
+            ->where('status','=',1)
+            ->paginate();
+            
+            return new bookcollection($books);
+            
+        });
+
+        Route::get('api/books/{book}', function ($id) {
+
+            $books= DB::table('books')
+            ->select('books.id','photos.title','photos.caption','photos.created_at','resources.url','resources.artist')
+            ->join('photos','photos.photoID','=','books.photoID')
+            ->join('resources','resources.resourceID','=','books.resourceID')
+            ->where('status','=',1)
+            ->where('id','=',$id)
+            ->first();
+            
+            return new book($books);
+            
+        });
+
+        Route::get('api/books/exclude/{book}', function ($id) {
+
+            $books= DB::table('books')
+            ->select('books.id','photos.title','photos.caption','photos.created_at','resources.url','resources.artist')
+            ->join('photos','photos.photoID','=','books.photoID')
+            ->join('resources','resources.resourceID','=','books.resourceID')
+            ->where('status','=',1)
+            ->where('id','!=',$id)
+            ->paginate();
+            
+            return new bookcollection($books);
+            
+        });
+
+
+        Route::get('api/books/exclude/{book}/page/{page}', function ($id,$id2) {
+
+            $books= DB::table('books')
+            ->select('books.id','photos.title','photos.caption','photos.created_at','resources.url','resources.artist')
+            ->join('photos','photos.photoID','=','books.photoID')
+            ->join('resources','resources.resourceID','=','books.resourceID')
+            ->where('status','=',1)
+            ->where('id','!=',$id)
+            ->paginate($id2);
+            
+            return new bookcollection($books);
+            
+        });
+
+
+        Route::get('api/pastors/{pastor}/books', function ($id) {
+
+            $books= DB::table('books')
+            ->select('books.id','photos.title','photos.caption','photos.created_at','resources.url','resources.artist')
+            ->join('photos','photos.photoID','=','books.photoID')
+            ->join('resources','resources.resourceID','=','books.resourceID')
+            ->where('status','=',1)
+            ->where('userID','=',$id)
+            ->paginate();
+            
+            return new bookcollection($books);
             
         });
 //Route::get('api/sermons', 'ApiController@sermons');

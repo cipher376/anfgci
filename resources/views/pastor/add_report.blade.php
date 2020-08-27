@@ -86,7 +86,7 @@
              
                 <div class="px-5 sm:px-20 mt-10 pt-3 border-gray-200">
                   
-                  <form   method="POST" action="/manage/church/report/{{$church}}" enctype="multipart/form-data">  
+                  <form   method="POST" action="/pastor/church/report/{{$church}}" enctype="multipart/form-data">  
 
                  
 @if ($errors->any())

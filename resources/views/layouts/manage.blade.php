@@ -75,6 +75,13 @@ License: You must have a valid license purchased only from themeforest(the above
                             <div class="menu__title"> Audios</div>
                         </a>
                     </li>
+
+                    <li>
+                        <a href="/manage/book" class="menu">
+                            <div class="menu__icon"> <i data-feather="book"></i> </div>
+                            <div class="menu__title"> Books</div>
+                        </a>
+                    </li>
                    
                    
                    
@@ -142,7 +149,12 @@ License: You must have a valid license purchased only from themeforest(the above
                         </a>
                     </li>
                   
-
+                    <li>
+                        <a href="/manage/book" class="side-menu">
+                            <div class="side-menu__icon"> <i data-feather="book"></i> </div>
+                            <div class="side-menu__title"> Books</div>
+                        </a>
+                    </li>
                   
                     <li class="side-nav__devider my-6"></li>
  
