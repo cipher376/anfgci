@@ -2645,6 +2645,53 @@ $churches= DB::table('church_photos')
      return $photoList;
      }   
 
+
+
+     public static function showServicesPaging($id,$page){
+        $photoList=array();
+        $pbind=array();
+        $churches= DB::table('church_services')->where('churchID', $id)
+        ->where(['churchID' => $id])
+        ->paginate($page);
+        
+           foreach($churches as $church){
+
+            $pbind['title']=$church->title;
+            $pbind['month']=$church->month;
+            
+            $pbind['time']=$church->time;
+            if($church->sermonID!=''){
+            //$pbind['sermon']=ManageController::showsermonUrl($church->sermonID);
+            $pbind['sermonID']=$church->sermonID;
+            }else{
+
+                $pbind['sermonID']=$church->sermonID;
+
+            }
+            array_push($photoList,$pbind);
+           }
+         return $photoList;
+         }  
+         
+         
+         public static function showsermonUrl($val){
+
+            if(!empty($val)){
+            $sermon= DB::table('sermons')
+            ->select('resources.url')
+            ->join('resources','resources.resourceID','=','sermons.resourceID') 
+            ->where(['sermonID' => $val])
+            ->where(['status' =>1])
+             ->first();
+
+            return $sermon->url;
+
+            }else{
+                return '';
+
+            }
+         }
+
  public static function ChurchServices($id){
     $photoList=array();
     $churches= DB::table('church')

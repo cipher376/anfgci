@@ -42,6 +42,8 @@ use App\Http\Resources\eventsinglepage;
 use App\Http\Resources\bookcollection;
 use App\Http\Resources\book;
 use App\Http\Resources\pastorReport;
+use App\Http\Resources\churchPhotoService;
+use App\Http\Resources\churchservicecollection;
 use App\User;
 use App\profile;
 use App\photos;
@@ -377,6 +379,32 @@ Route::get('api/churches/{church}/photos/page/{pag}', function ($id,$id2) {
     $churchPhotos = ManageController::showChurchPhotosPag($id,$id2);
     $collection = CResourcePhotoPaginate::collection($churches);
     return $collection->additional(['photos' => $churchPhotos]);
+
+
+});
+
+Route::get('api/churches/{church}/photos/services/page/{pag}', function ($id,$id2) {
+    $page=$id2;
+    $churches= DB::table('churches')
+    ->select('churches.churchID','churches.name','churches.note','churches.est_date','address.country','address.state','address.town')
+    ->join('address','address.addressID','=','churches.addressID') 
+    ->where(['churchID' => $id])
+    ->first();
+
+    return new churchPhotoService($churches,$id2);
+
+
+});
+
+Route::get('api/churches/{church}/services',function ($id) {
+    
+    $churches= DB::table('church_services')
+    ->select('church_services.title','church_services.month','church_services.time','church_services.sermonID')
+    ->where(['churchID' => $id])
+    ->paginate();
+        
+        
+    return churchservicecollection::collection($churches);
 
 
 });
