@@ -25,7 +25,7 @@ License: You must have a valid license purchased only from themeforest(the above
         <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<title>{{ config('app.name', 'Manage') }}</title>
+    <title>@yield('title')</title>
         <!-- BEGIN: CSS Assets-->
         <link rel="stylesheet" href="{{ asset('dist/css/app.css') }}" />
         <!-- END: CSS Assets-->

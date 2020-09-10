@@ -60,7 +60,7 @@ License: You must have a valid license purchased only from themeforest(the above
 <input type="hidden" name="token" value="{{ $token }}">
 
 <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
-    <label for="email" class="col-md-4 control-label">E-Mail Address</label>
+    <label for="email" class="col-md-4 control-label">E-Mail Address2</label>
 
     <div class="col-md-6">
         <input id="email" type="email" class="intro-x login__input input input--lg border border-gray-300 block" name="email" value="{{ $email or old('email') }}" required autofocus>

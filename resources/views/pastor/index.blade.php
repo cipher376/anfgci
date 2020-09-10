@@ -1,6 +1,6 @@
 <?php   use \App\Http\Controllers\PastorController; ?>
 @extends('layouts.pastor')
-
+@section('title','Dashboard | Pastor')
 @section('content')
 
          <?php //$messages=PastorController::showtopics(); ?>  
@@ -115,11 +115,11 @@
                                             <div class="flex">
                                                 <i data-feather="book" class="report-box__icon text-theme-9"></i> 
                                                 <div class="ml-auto">
-                                                    <div class="report-box__indicator bg-theme-9 tooltip cursor-pointer" title="Total church upload"> <?php  echo $churches->count(); ?> Uploadeds <i data-feather="chevron-up" class="w-4 h-4"></i> </div>
+                                                    <div class="report-box__indicator bg-theme-9 tooltip cursor-pointer" title="Total church upload"> <?php  echo $books->count(); ?> Uploads <i data-feather="chevron-up" class="w-4 h-4"></i> </div>
                                                 </div>
                                             </div>
-                                            <a href="">
-                                            <div class="text-3xl font-bold leading-8 mt-6"><?php  echo $churches->count(); ?></div>
+                                            <a href="/pastor/book">
+                                            <div class="text-3xl font-bold leading-8 mt-6"><?php  echo $books->count(); ?></div>
                                             <div class="text-base text-gray-600 mt-1">Books</div>
                                 </a></div>
                                     </div>

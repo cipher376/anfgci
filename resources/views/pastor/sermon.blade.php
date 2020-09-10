@@ -1,4 +1,5 @@
 @extends('layouts.pastor')
+@section('title','Sermons')
 @section('content')
 
 

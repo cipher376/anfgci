@@ -1,3 +1,4 @@
+<?php   use \App\Http\Controllers\PastorController; ?>
 @extends('layouts.manage')
 @section('content')
 
@@ -93,6 +94,7 @@
                         <thead>
                             <tr>
                                 <th></th>
+                                <th></th>
                                 <th class="border-b-2 whitespace-no-wrap">TITLE</th>
         
                                 <th class="border-b-2 text-center whitespace-no-wrap">AUTHOR</th>
@@ -106,7 +108,10 @@
                             @foreach($videos as $video)
                             <tr>
                             <td class=""> <input type="checkbox" name="video[]" class="input border mr-2" id="vertical-checkbox-chris-evans" value="{{$video->videoID}}"></td>
-                   
+                            <td class="w-full border-b">
+                            <img src="<?php echo PastorController::showVideoCover($video->photoID); ?>" width="100%" />
+                      
+                                </td>
                                 <td class="border-b">
                                     <div class="font-medium whitespace-no-wrap">{{ $video->title }}</div>
                                     

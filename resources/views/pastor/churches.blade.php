@@ -2,6 +2,7 @@
 
 ?>
 @extends('layouts.pastor')
+@section('title','Church')
 @section('content')
 
 

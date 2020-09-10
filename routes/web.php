@@ -89,9 +89,10 @@ Route::get('pastor/add_video', 'PastorController@video')->name('video');
 Route::get('/pastor/videos/deletefree/{video}', 'PastorController@delete_free_video')->name('delete_free_video');
 Route::get('pastor/premium_video', 'PastorController@premiumvideo')->name('premiumvideo');
 Route::get('pastor/premium_add_video', 'PastorController@add_premium')->name('add_premium_video');
-Route::post('pastor/premium_add_video', 'PastorController@storePremiumVideos')->name('storePremiumVideos');
+Route::post('pastor/premium_add_video', 'PastorController@store_premium_videos')->name('storePremiumVideos');
 Route::post('pastor/videos/activation/', 'PastorController@videopostallow')->name('videopostallow');
 Route::get('/pastor/videos/delete/{video}', 'PastorController@delete_video')->name('delete_video');
+Route::get('/pastor/videos/watch/{video}', 'PastorController@watch_video')->name('watch_video');
 
 
 Route::get('pastor/audios', 'PastorController@audios')->name('audios');
@@ -249,9 +250,9 @@ Route::get('manage/my_church', 'ManageController@my_church')->name('my_church');
 //Route::get('api/users/{user}', 'ApiController@singleuser');
 
 
-Route::get('api/users', function () {
+Route::get('api/users',['middleware'=>'cors',function () {
     return new UserCollection(User::whereIn('role',['user'])->paginate());
-});
+}]);
 
 Route::get('api/users/{user}', function ($id) {
     $users =User::find($id);
@@ -259,7 +260,7 @@ Route::get('api/users/{user}', function ($id) {
     return new UserResource($users);
 });
 
-Route::get('api/users/{user}/profile', function ($id) {
+Route::get('api/users/{user}/profile',['middleware'=>'cors', function ($id) {
 
 
     $users = DB::table('profile')
@@ -275,9 +276,9 @@ Route::get('api/users/{user}/profile', function ($id) {
 
 
     return new UserProfileResource($users);
-});
+}]);
 
-Route::get('api/users/{user}/profile/photo', function ($id) {
+Route::get('api/users/{user}/profile/photo', ['middleware'=>'cors', function ($id) {
    
     //$profilex = profile::where('id', '=', $id)->first();
     //$profiles =profile::find($profilex->photoID)->photos;
@@ -294,10 +295,10 @@ Route::get('api/users/{user}/profile/photo', function ($id) {
     ->get();
 
     return new UserProfilePhotoResource($profiles);
-});
+}]);
 
 
-Route::get('api/users/profile/photo', function () {
+Route::get('api/users/profile/photo',['middleware'=>'cors', function () {
    
 
     $profiles= DB::table('profile')
@@ -307,20 +308,20 @@ Route::get('api/users/profile/photo', function () {
     ->paginate(10);
 
     return new combinedUserCollection($profiles);
-});
+}]);
 /////////////////////////////////// CHURCH API ///////////////////////////////////////////
 
-Route::get('api/churches/', function () {
+Route::get('api/churches/', ['middleware'=>'cors',function () {
 
     $churches= DB::table('churches')
     ->select('churches.churchID','churches.name','churches.est_date','address.country','address.state','address.town')
     ->join('address','address.addressID','=','churches.addressID') 
     ->paginate(10);
     return new ChurchCollection($churches);
-});
+}]);
 
 
-Route::get('api/churches/{church}', function ($id) {
+Route::get('api/churches/{church}', ['middleware'=>'cors',function ($id) {
 
     $churches= DB::table('churches')
     ->select('churches.churchID','churches.name','churches.note','churches.est_date','address.country','address.state','address.town')
@@ -329,10 +330,10 @@ Route::get('api/churches/{church}', function ($id) {
     ->get();
 
     return  ChurchResource::collection($churches);
-});
+}]);
 
 
-Route::get('api/churches/{church}/events', function ($id) {
+Route::get('api/churches/{church}/events', ['middleware'=>'cors',function ($id) {
 
     $churches= DB::table('events')
     ->select('events.eventID','events.title','events.note','events.startTime','events.endTime','address.state','address.town','address.country')
@@ -341,9 +342,9 @@ Route::get('api/churches/{church}/events', function ($id) {
     ->paginate();
 
     return new eventcollection($churches);
-});
+}]);
 
-Route::get('api/churches/{church}/events/page/{page}', function ($id,$id2) {
+Route::get('api/churches/{church}/events/page/{page}', ['middleware'=>'cors',function ($id,$id2) {
 
     $churches= DB::table('events')
     ->select('events.eventID','events.title','events.note','events.startTime','events.endTime','address.state','address.town','address.country')
@@ -352,9 +353,9 @@ Route::get('api/churches/{church}/events/page/{page}', function ($id,$id2) {
     ->paginate($id2);
 
     return new eventcollection($churches);
-});
+}]);
 
-Route::get('api/churches/{church}/photos/page/all', function ($id) {
+Route::get('api/churches/{church}/photos/page/all', ['middleware'=>'cors',function ($id) {
    
     $photos= DB::table('church_photos')
     ->select('photos.url')
@@ -366,9 +367,9 @@ Route::get('api/churches/{church}/photos/page/all', function ($id) {
     
 
 
-});
+}]);
 
-Route::get('api/churches/{church}/photos/page/{pag}', function ($id,$id2) {
+Route::get('api/churches/{church}/photos/page/{pag}', ['middleware'=>'cors',function ($id,$id2) {
     $page=$id2;
     $churches= DB::table('churches')
     ->select('churches.churchID','churches.name','churches.note','churches.est_date','address.country','address.state','address.town')
@@ -381,9 +382,9 @@ Route::get('api/churches/{church}/photos/page/{pag}', function ($id,$id2) {
     return $collection->additional(['photos' => $churchPhotos]);
 
 
-});
+}]);
 
-Route::get('api/churches/{church}/photos/services/page/{pag}', function ($id,$id2) {
+Route::get('api/churches/{church}/photos/services/page/{pag}', ['middleware'=>'cors',function ($id,$id2) {
     $page=$id2;
     $churches= DB::table('churches')
     ->select('churches.churchID','churches.name','churches.note','churches.est_date','address.country','address.state','address.town')
@@ -394,9 +395,9 @@ Route::get('api/churches/{church}/photos/services/page/{pag}', function ($id,$id
     return new churchPhotoService($churches,$id2);
 
 
-});
+}]);
 
-Route::get('api/churches/{church}/services',function ($id) {
+Route::get('api/churches/{church}/services',['middleware'=>'cors',function ($id) {
     
     $churches= DB::table('church_services')
     ->select('church_services.title','church_services.month','church_services.time','church_services.sermonID')
@@ -407,12 +408,12 @@ Route::get('api/churches/{church}/services',function ($id) {
     return churchservicecollection::collection($churches);
 
 
-});
+}]);
 
 
 //////////////////////////////// Pastors API //////////////////////////////
 
-Route::get('api/pastors/', function () {
+Route::get('api/pastors/', ['middleware'=>'cors',function () {
 
     $pastors= DB::table('pastors')
     ->select('profile.id','profile.firstname','profile.lastname','profile.email','profile.phone')
@@ -420,11 +421,11 @@ Route::get('api/pastors/', function () {
     ->paginate();
     
     return new pastors($pastors);
-});
+}]);
 
 
 
-Route::get('api/pastors/{pastor}', function ($id) {
+Route::get('api/pastors/{pastor}', ['middleware'=>'cors',function ($id) {
 
     $pastors= DB::table('profile')
     ->select('profile.id','profile.firstname','profile.lastname','profile.email','profile.phone','photos.url','address.country','address.state','address.town')
@@ -446,10 +447,10 @@ Route::get('api/pastors/{pastor}', function ($id) {
    $collection = pastordetail::collection($pastors);
    return $collection->additional(['churchID' => $church->churchID]);
     
-});
+}]);
 
 
-Route::get('api/pastors/{pastor}/resources/paging/{page}', function ($id,$id2) {
+Route::get('api/pastors/{pastor}/resources/paging/{page}', ['middleware'=>'cors',function ($id,$id2) {
 
     $page=$id2;
     $pastors= DB::table('profile')
@@ -471,10 +472,10 @@ Route::get('api/pastors/{pastor}/resources/paging/{page}', function ($id,$id2) {
    //$collection = pastordetail::collection($pastors);
    //return $collection->additional(['church' => ucwords($church->name)]);
     
-});
+}]);
 
 
-Route::get('api/pastors/{pastor}/audios', function ($id) {
+Route::get('api/pastors/{pastor}/audios', ['middleware'=>'cors',function ($id) {
 
     $pastors= DB::table('audios')
     ->select('audios.audioID','audios.audioType','resources.title','resources.artist','resources.url','photos.url')
@@ -485,10 +486,10 @@ Route::get('api/pastors/{pastor}/audios', function ($id) {
     
     return new pastorsAudio($pastors);
     
-});
+}]);
 
 
-Route::get('api/pastors/{pastor}/reports', function ($id) {
+Route::get('api/pastors/{pastor}/reports', ['middleware'=>'cors', function ($id) {
 
     $report= DB::table('reports')
     ->select('reports.id','reports.reportMonth','resources.title','resources.url','resources.created_at')
@@ -498,10 +499,10 @@ Route::get('api/pastors/{pastor}/reports', function ($id) {
     
     return new pastorReport($report);
     
-});
+}]);
 
 
-Route::get('api/pastors/{pastor}/audios/{audio}', function ($id,$id2) {
+Route::get('api/pastors/{pastor}/audios/{audio}', ['middleware'=>'cors',function ($id,$id2) {
 
     $pastors= DB::table('audios')
     ->select('audios.audioID','audios.audioType','resources.title','resources.artist','photos.url','resources.note')
@@ -512,8 +513,8 @@ Route::get('api/pastors/{pastor}/audios/{audio}', function ($id,$id2) {
     
     return new pastorsAudioSingle($pastors);
     
-});
-Route::get('api/pastors/{pastor}/audios/exclude/{audio}', function ($id,$id2) {
+}]);
+Route::get('api/pastors/{pastor}/audios/exclude/{audio}', ['middleware'=>'cors',function ($id,$id2) {
 
     $pastors= DB::table('audios')
     ->select('audios.audioID','audios.audioType','resources.title','resources.artist','photos.url')
@@ -526,9 +527,9 @@ Route::get('api/pastors/{pastor}/audios/exclude/{audio}', function ($id,$id2) {
     
     return new pastorsAudioSingleExclude($pastors);
     
-});
+}]);
 
-Route::get('api/pastors/{pastor}/audios/exclude/{audios}/paging/{page}', function ($id,$id2,$id3) {
+Route::get('api/pastors/{pastor}/audios/exclude/{audios}/paging/{page}',['middleware'=>'cors', function ($id,$id2,$id3) {
 
     $pastors= DB::table('audios')
     ->select('audios.audioID','audios.audioType','resources.title','resources.artist','photos.url')
@@ -541,10 +542,10 @@ Route::get('api/pastors/{pastor}/audios/exclude/{audios}/paging/{page}', functio
     
     return new pastorsAudioSingleExcludePaging($pastors);
     
-});
+}]);
 
 
-Route::get('api/pastors/{pastor}/videos', function ($id) {
+Route::get('api/pastors/{pastor}/videos', ['middleware'=>'cors',function ($id) {
 
     $pastors= DB::table('videos')
     ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
@@ -555,12 +556,12 @@ Route::get('api/pastors/{pastor}/videos', function ($id) {
     
     return new pastorsVideos($pastors);
     
-});
+}]);
 
 
 
 
-Route::get('api/pastors/{pastor}/videos/{video}', function ($id,$id2) {
+Route::get('api/pastors/{pastor}/videos/{video}', ['middleware'=>'cors',function ($id,$id2) {
 
     $pastors= DB::table('videos')
     ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.note','photos.url')
@@ -573,9 +574,9 @@ Route::get('api/pastors/{pastor}/videos/{video}', function ($id,$id2) {
     return new pastorsVideosSingle($pastors,$video);
    
     
-});
+}]);
 
-Route::get('api/pastors/{pastor}/videos/exclude/{videos}', function ($id,$id2) {
+Route::get('api/pastors/{pastor}/videos/exclude/{videos}', ['middleware'=>'cors',function ($id,$id2) {
 
     $pastors= DB::table('videos')
     ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
@@ -587,9 +588,9 @@ Route::get('api/pastors/{pastor}/videos/exclude/{videos}', function ($id,$id2) {
     
     return new pastorsVideosSingleExclude($pastors);
     
-});
+}]);
 
-Route::get('api/pastors/{pastor}/videos/exclude/{videos}/paging/{page}', function ($id,$id2,$id3) {
+Route::get('api/pastors/{pastor}/videos/exclude/{videos}/paging/{page}',['middleware'=>'cors', function ($id,$id2,$id3) {
 
     $pastors= DB::table('videos')
     ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
@@ -601,9 +602,9 @@ Route::get('api/pastors/{pastor}/videos/exclude/{videos}/paging/{page}', functio
     
     return new pastorsVideosSingleExcludePaging($pastors);
     
-});
+}]);
 
-Route::get('api/pastors/{pastor}/sermons', function ($id) {
+Route::get('api/pastors/{pastor}/sermons', ['middleware'=>'cors',function ($id) {
 
     $pastors= DB::table('sermons')
     ->select('sermons.sermonID','sermons.created_at','resources.title','resources.artist','resources.url')
@@ -613,10 +614,10 @@ Route::get('api/pastors/{pastor}/sermons', function ($id) {
     
     return new pastorsSermons($pastors);
     
-});
+}]);
 
 
-Route::get('api/pastors/{pastor}/sermons/{sermon}', function ($id,$id2) {
+Route::get('api/pastors/{pastor}/sermons/{sermon}',['middleware'=>'cors', function ($id,$id2) {
 
     $pastors= DB::table('sermons')
     ->select('sermons.sermonID','sermons.created_at','resources.title','resources.artist','resources.note','resources.url')
@@ -626,9 +627,9 @@ Route::get('api/pastors/{pastor}/sermons/{sermon}', function ($id,$id2) {
     
     return new pastorsSermonsSingle($pastors);
     
-});
+}]);
 
-Route::get('api/pastors/{pastor}/premiumvideos', function ($id) {
+Route::get('api/pastors/{pastor}/premiumvideos',['middleware'=>'cors',function ($id) {
 
     $pastors= DB::table('videos')
     ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
@@ -640,10 +641,10 @@ Route::get('api/pastors/{pastor}/premiumvideos', function ($id) {
     
     return new pastorsVideos($pastors);
     
-});
+}]);
 
 
-Route::get('api/pastors/{pastor}/premiumvideos/{video}', function ($id) {
+Route::get('api/pastors/{pastor}/premiumvideos/{video}',['middleware'=>'cors', function ($id) {
 
     $pastors= DB::table('videos')
     ->select('videos.videoID','videos.vidType','resources.title','resources.artist','resources.note','photos.url')
@@ -655,9 +656,9 @@ Route::get('api/pastors/{pastor}/premiumvideos/{video}', function ($id) {
     
     return new pastorsPremiumVideosSingle($pastors);
     
-});
+}]);
 
-Route::get('api/pastors/{pastor}/premiumvideos/exclude/{videos}', function ($id,$id2) {
+Route::get('api/pastors/{pastor}/premiumvideos/exclude/{videos}',['middleware'=>'cors',function ($id,$id2) {
 
     $pastors= DB::table('videos')
     ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
@@ -670,9 +671,9 @@ Route::get('api/pastors/{pastor}/premiumvideos/exclude/{videos}', function ($id,
     
     return new pastorsVideosSingleExclude($pastors);
     
-});
+}]);
 
-Route::get('api/pastors/{pastor}/premiumvideos/exclude/{videos}/paging/{page}', function ($id,$id2,$id3) {
+Route::get('api/pastors/{pastor}/premiumvideos/exclude/{videos}/paging/{page}',['middleware'=>'cors', function ($id,$id2,$id3) {
 
     $pastors= DB::table('videos')
     ->select('videos.videoID','videos.vidType','resources.title','resources.artist','photos.url')
@@ -685,10 +686,10 @@ Route::get('api/pastors/{pastor}/premiumvideos/exclude/{videos}/paging/{page}', 
     
     return new pastorsVideosSingleExcludePaging($pastors);
     
-});
+}]);
 
 
-Route::get('api/sermons', function () {
+Route::get('api/sermons',['middleware'=>'cors',function () {
 
     $sermons= DB::table('sermons')
     ->select('sermons.sermonID','resources.title','resources.note','resources.created_at','resources.url','resources.uploadby','resources.artist')
@@ -698,8 +699,8 @@ Route::get('api/sermons', function () {
     
     return new sermoncollection($sermons);
     
-});
-Route::get('api/sermons/{sermon}', function ($id) {
+}]);
+Route::get('api/sermons/{sermon}', ['middleware'=>'cors',function ($id) {
 
     $sermon= DB::table('sermons')
     ->select('sermons.sermonID','resources.title','resources.note','resources.created_at','resources.url','resources.uploadby','resources.artist')
@@ -709,9 +710,9 @@ Route::get('api/sermons/{sermon}', function ($id) {
     
     return new sermonsingle($sermon);
     
-});
+}]);
 
-Route::get('api/events', function () {
+Route::get('api/events', ['middleware'=>'cors',function () {
 
     $events= DB::table('events')
     ->select('events.eventID','events.churchID','events.title','events.note','events.author','events.startTime','events.endTime','events.created_at','address.country','address.state','address.town')
@@ -720,9 +721,9 @@ Route::get('api/events', function () {
     
     return new eventcollection($events);
     
-});
+}]);
 
-Route::get('api/events/{event}', function ($id) {
+Route::get('api/events/{event}', ['middleware'=>'cors',function ($id) {
 
     $events= DB::table('events')
     ->select('events.eventID','events.churchID','events.title','events.note','events.author','events.startTime','events.endTime','events.created_at','address.country','address.state','address.town')
@@ -732,9 +733,9 @@ Route::get('api/events/{event}', function ($id) {
     
     return new eventsingle($events);
     
-});
+}]);
 
-Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
+Route::get('api/events/{event}/photos/page/{page}',['middleware'=>'cors',function ($id,$id2) {
     $page=$id2;
         $events= DB::table('events')
         ->select('events.eventID','events.churchID','events.title','events.note','events.author','events.startTime','events.endTime','events.created_at','address.country','address.state','address.town')
@@ -744,9 +745,9 @@ Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
         
         return new eventsinglepage($events,$page);
         
-    });
+    }]);
 
-    Route::get('api/events/{event}/photos/all', function ($id) {
+    Route::get('api/events/{event}/photos/all',['middleware'=>'cors', function ($id) {
        
             $events= DB::table('eventphotos')
             ->select('eventphotos.id','photos.title','photos.caption','photos.created_at','photos.url')
@@ -756,10 +757,10 @@ Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
             
             return new eventsinglephotocollection($events);
             
-        });
+        }]);
 
 
-        Route::get('api/books', function () {
+        Route::get('api/books',['middleware'=>'cors', function () {
 
             $books= DB::table('books')
             ->select('books.id','photos.url','photos.title','resources.artist','photos.caption','photos.created_at')
@@ -770,9 +771,9 @@ Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
             
             return new bookcollection($books);
             
-        });
+        }]);
 
-        Route::get('api/books/{book}', function ($id) {
+        Route::get('api/books/{book}', ['middleware'=>'cors',function ($id) {
 
             $books= DB::table('books')
             ->select('books.id','photos.title','photos.caption','photos.created_at','resources.url','resources.artist')
@@ -784,9 +785,9 @@ Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
             
             return new book($books);
             
-        });
+        }]);
 
-        Route::get('api/books/exclude/{book}', function ($id) {
+        Route::get('api/books/exclude/{book}', ['middleware'=>'cors',function ($id) {
 
             $books= DB::table('books')
             ->select('books.id','photos.title','photos.caption','photos.created_at','resources.url','resources.artist')
@@ -798,10 +799,10 @@ Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
             
             return new bookcollection($books);
             
-        });
+        }]);
 
 
-        Route::get('api/books/exclude/{book}/page/{page}', function ($id,$id2) {
+        Route::get('api/books/exclude/{book}/page/{page}',['middleware'=>'cors', function ($id,$id2) {
 
             $books= DB::table('books')
             ->select('books.id','photos.title','photos.caption','photos.created_at','resources.url','resources.artist')
@@ -813,10 +814,10 @@ Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
             
             return new bookcollection($books);
             
-        });
+        }]);
 
 
-        Route::get('api/pastors/{pastor}/books', function ($id) {
+        Route::get('api/pastors/{pastor}/books', ['middleware'=>'cors',function ($id) {
 
             $books= DB::table('books')
             ->select('books.id','photos.title','photos.caption','photos.created_at','resources.url','resources.artist')
@@ -828,7 +829,7 @@ Route::get('api/events/{event}/photos/page/{page}', function ($id,$id2) {
             
             return new bookcollection($books);
             
-        });
+        }]);
 //Route::get('api/sermons', 'ApiController@sermons');
 //Route::get('api/sermons/{sermon}', 'ApiController@getsermon');
 

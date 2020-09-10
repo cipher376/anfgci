@@ -26,10 +26,12 @@ class PastorController extends Controller
        
         $sermonsX= DB::table('sermons')->where('userID',auth()->user()->id)->get(); 
         
-        $churches = DB::table('churches')->get();
+        $books = DB::table('books')
+        ->where('userID',auth()->user()->id)
+        ->get();
         $users = DB::table('users')->get();
        
-        return view('pastor.index',['sermonsx'=>$sermonsX],['churches'=>$churches],['users'=>$users]);
+        return view('pastor.index',['sermonsx'=>$sermonsX],['books'=>$books],['users'=>$users]);
     }
 
     public static function allVideos(){
@@ -1372,6 +1374,113 @@ public function deleteServices($id) {
 
     }
 
+    public function store_premium_videos()    
+    {
+        $validator=$this->validate(request(),[
+            'title'=>'required|string',
+            'author'=>'required|string',
+            'note'=>'required|string',
+            'imgfile'=>'required|mimes:jpeg,JPEG,png',
+            'videofile'=>'required|file:mp4',
+           
+            
+            
+            ],
+            [
+                'title.required'=>'Enter video title ',
+                'author.required'=>'Enter author name ',
+                'note.required'=>'Enter a note for audio ',
+                'imgfile.required'=>'Upload photo for audio',
+                'videofile.required'=>'Upload a video',
+                
+                
+                ]);
+
+                if(count(request()->all()) > 0){
+
+                   
+                    $title = request()->input('title');
+                    $author = request()->input('author');
+                    $note= request()->input('note');
+                    $imgfile= request()->file('imgfile');
+                    $videofile= request()->file('videofile');
+                    $created= date('Y-m-d H:i:s');
+
+                     //////// move imgfile to photos folder ////////////////
+
+            $original_filename = strtolower(trim($imgfile->getClientOriginalName()));
+            $fileNamea =  time().rand(100,999).$original_filename;
+            $filePatha = 'photos';
+            $filePathdba = asset('/photos/'.$fileNamea);
+            $imgfile->move($filePatha,$fileNamea);
+
+
+
+             //////// move videofile to audios folder ////////////////
+
+             $original_videoname = strtolower(trim($videofile->getClientOriginalName()));
+             $fileName =  time().rand(100,999).$original_videoname;
+             $filePath = 'premiumVideos';
+             $filePathdb = asset('/premiumVideos/'.$fileName);
+             $videofile->move($filePath,$fileName);
+
+             $resource = new resources;
+
+             $resource->title = request()->input('title');
+             $resource->type = 1;
+             
+             $resource->note = request()->input('note');
+             $resource->url =$filePathdb;
+             $resource->isPublic= 0;
+             $resource->uploadby=auth()->user()->name;
+             $resource->artist = request()->input('author');
+             if($resource->save()){
+
+
+                $resourceid=$resource->id;
+
+                $photos = new photos();
+
+                        $photos->type= '4';
+                        $photos->title= request()->input('title');
+                        $photos->caption= "cover photo";
+                        $photos->url=$filePathdba;
+                       if($photos->save()){
+
+
+             $data=array('resourceID'=>$resource->id,'vidType'=>"premium","userID"=>auth()->user()->id,'photoID'=>$photos->id,"status"=>'0',"created_at"=>$created);
+             DB::table('videos')->insert($data);
+     
+
+                return redirect()->back()->withSuccess('upload succesful.');
+                       }
+                    
+             }    
+                   
+
+
+
+                }
+       
+    }
+
+
+    public function watch_video($id)
+    {
+       
+       
+       $videos =  DB::table('videos')
+       ->select('photos.url','photos.title','videos.videoID')
+       ->join('photos','photos.photoID','=','videos.photoID')
+       ->where('videoID','!=', $id)
+       ->where(['userID'=> auth()->user()->id])
+       ->where(['vidType'=> 'premium'])
+       ->paginate(4);
+       
+        $lists = DB::select('select * from videos left join resources using(resourceID) where videoID='.$id);
+        return view('pastor.play_video',['lists'=>$lists],['videos'=>$videos]);
+    }
+
 
     public function delete_video($id)
     
@@ -1508,6 +1617,7 @@ $existFile="";
           'artist'=>'required|string',
           'note' => 'required|string',
           'id' => 'required|string',
+          'file'=>'required|mimes:jpeg,JPEG,png',
           ],
           [
               'title.required'=>'Enter a title for video. ',
@@ -1528,6 +1638,17 @@ $existFile="";
                 $created= date('Y-m-d H:i:s');
 
 
+ ////// move file to upload folder ////////////////
+
+ $file = request()->file('file');
+ $original_name = strtolower(trim($file->getClientOriginalName()));
+ $fileName =  time().rand(100,999).$original_name;
+ $filePath = 'photos';
+ $filePathdb=asset('/photos/'.$fileName);
+ $file->move($filePath,$fileName);
+
+
+
                 $resource = new resources;
 
                         $resource->title = request()->input('title');
@@ -1540,10 +1661,20 @@ $existFile="";
                         $resource->artist = request()->input('artist');
                         if($resource->save()){
 
-                $data=array('resourceID'=>$resource->id,'vidType'=>"free","userID"=>auth()->user()->id,"status"=>'0');
+                            $photos = new photos();
+
+                            $photos->type= '4';
+                            $photos->title= request()->input('title');
+                            $photos->caption= "cover photo";
+                            $photos->url=$filePathdb;
+                           if($photos->save()){
+
+                $data=array('resourceID'=>$resource->id,'vidType'=>"free","userID"=>auth()->user()->id,"photoID"=>$photos->id,"status"=>'0');
                 DB::table('videos')->insert($data);
                 return redirect()->back()->withSuccess('Upload sucessful.');
-                        }
+                           }     
+            
+            }
                
 
               }}
@@ -1680,6 +1811,21 @@ public static function showAudioCover($id){
 }
 }
 
+
+public static function showVideoCover($id){
+    $photourl="";
+
+
+       $photos= DB::select('select * from photos where photoID='.$id);
+       foreach($photos as $photo){
+           $photourl=$photo->url;
+
+       }
+       return $photourl;
+
+}
+
+
 public static function showbookCover($id){
     $photourl="";
 
@@ -1695,6 +1841,8 @@ public static function showbookCover($id){
 
 }
 }
+
+
 
 
 public static function showAudiotitle($id){

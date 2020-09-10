@@ -1,3 +1,4 @@
+<?php   use \App\Http\Controllers\PastorController; ?>
 @extends('layouts.pastor')
 @section('content')
 
@@ -88,6 +89,7 @@
                         <thead>
                             <tr>
                                 <th></th>
+                                <th></th>
                                 <th class="border-b-2 whitespace-no-wrap">TITLE</th>
         
                                 <th class="border-b-2 text-center whitespace-no-wrap">POSTED</th>
@@ -99,8 +101,13 @@
                         <tbody>
                             @foreach($videos as $video)
                             <tr>
-                            <td class=""> <input type="checkbox" name="video[]" class="input border mr-2" id="vertical-checkbox-chris-evans" value="{{$video->videoID}}"></td>
-                   
+                            <td class=""> <input type="checkbox" name="video[]" class="input border mr-2" id="vertical-checkbox-chris-evans" value="{{$video->videoID}}">
+                        </td>
+                        <td class="border-b">
+                        <img src="<?php echo PastorController::showVideoCover($video->photoID); ?>" width="100%" />
+                      
+                                    
+                                </td>
                                 <td class="border-b">
                                     <div class="font-medium whitespace-no-wrap">{{ $video->title }}</div>
                                     
@@ -120,15 +127,15 @@
                                 
                                 <td class="border-b w-5">
                                     <div class="flex sm:justify-center items-center">
-                                    <a class="flex items-center mr-3" href="#"> <i data-feather="eye" class="w-4 h-4 mr-1"></i> Detail </a>
+                                    <a class="flex items-center mr-3" href="/pastor/videos/watch/{{ $video->videoID }}"> <i data-feather="eye" class="w-4 h-4 mr-1"></i> Detail </a>
                                      
-                                        <?php if (Auth::user()->role=="manage"  ){ ?>
+                                      
                                            
-                                     <!--   <a class="flex items-center text-theme-6" href="./video/delete/{{ $video->id}}">-->
-                                        <a class="flex items-center text-theme-6" id="deleteUser{{ $video->id}}" data-userid="{{$video->id}}" href="javascript:void(0)" onclick="showAlert({{ $video->id}});" >
+                                   
+                                        <a class="flex items-center text-theme-6" id="deleteUser{{ $video->videoID}}" data-userid="{{$video->videoID}}" href="javascript:void(0)" onclick="showAlert({{ $video->videoID}});" >
                                          <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> Delete </a>
                                        
-                                        <?php }?>
+                                  
                                     </div>
                                 </td>
                             </tr>

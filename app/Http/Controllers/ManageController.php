@@ -200,6 +200,22 @@ public function church_report($id){
         return view('manage.listen_audio',['lists'=>$lists],['audios'=>$audios]);
     }
 
+
+    public function watch_video($id)
+    {
+       
+       
+       $videos =  DB::table('videos')
+       ->select('photos.url','photos.title')
+       ->join('photos','photos.photoID','=','videos.photoID')
+       ->where(['videoID','!=', $id])
+       ->where(['userID'=> auth()->user()->id])
+       ->paginate(4);
+       
+        $lists = DB::select('select * from videos left join resources using(resourceID) where videoID='.$id);
+        return view('manage.listen_audio',['lists'=>$lists],['videos'=>$videos]);
+    }
+
     public function gallery($id)
     {
     $churches = DB::select('select * from churches where id='.$id);

@@ -90,12 +90,12 @@
              
                 </div>
 
-
+<?php //echo phpinfo(); ?>
 
                 <div class="intro-y box py-10 sm:py-8 mt-5">
              
              <div class="px-5 sm:px-20 mt-10 pt-3 border-gray-200">
-                 <form method="POST"  action="{{route('storePremiumVideos')}}" enctype="multipart/form-data">
+                 <form method="POST"  action="{{route('store_premium_videos')}}" enctype="multipart/form-data">
 
                  {{ csrf_field() }} 
                
@@ -123,7 +123,10 @@
 
                      </div>
 
-                    
+                     <div class="intro-y col-span-12 sm:col-span-6">
+                        <div class="mb-6">Upload Cover Photo</div>
+                            
+                        <input name="imgfile" type="file"   /> </div>
                 
                      <div class="intro-y col-span-12 sm:col-span-6">
                         <div class="mb-6" style="color:forestgreen">Upload Video</div>

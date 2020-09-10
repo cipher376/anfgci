@@ -1,5 +1,6 @@
 <?php   use \App\Http\Controllers\PastorController; ?>
 @extends('layouts.pastor')
+@section('title',' Books')
 @section('content')
 
                 <!-- BEGIN: Top Bar -->
