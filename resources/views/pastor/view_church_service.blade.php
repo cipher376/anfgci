@@ -110,8 +110,8 @@
                     <a href="/pastor/church/{{$church->churchID}}/service/sermon/view/{{ $service->serviceID }}" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="View Sermon of service"> <i class="w-3 h-3 fill-current" data-feather="eye"></i> </a>
                    
                   <?php }else{?> 
-                                  
-                    <a href="javascript:;" data-toggle="modal" data-target="#header-footer-modal-preview3"  class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Click to add sermon of service">  <i data-feather="file-plus" class="w-4 h-4"></i></a></td>
+                    <a id="service{{ $service->serviceID}}" data-userid="{{$service->serviceID}}" href="javascript:void(0)" onclick="serviceId({{ $service->serviceID}});" class="w-8 h-8 rounded-full flex items-center justify-center border ml-2 text-gray-500 zoom-in tooltip" title="Click to add sermon of service">             
+                     <i data-feather="file-plus" class="w-4 h-4"></i></a></td>
                    
                <?php }?>
 
@@ -219,7 +219,7 @@
          <div class="p-5 grid grid-cols-12 gap-4 row-gap-3">
              <div class="col-span-12 sm:col-span-12"> <label>Title</label> 
              <input name="topic" type="text" class="input w-full border flex-1" placeholder="Sermon Topic" required>
-            <input name="serviceid" type="hidden" class="input w-full border flex-1" value="{{ $serviceid }}">
+            <input id="serviceid"  name="serviceid" type="hidden" class="input w-full border flex-1">
                           
             <div class="col-span-12 sm:col-span-12"> <label>Author</label> 
             <input name="author" type="text" class="input w-full border flex-1" placeholder="Name of minister" required>
@@ -289,6 +289,15 @@ function showAlert(photo){
     var userID=$('#deleteUser'+id).attr('data-userid');
     $('#app_id').val(userID); 
    $('#delete-confirmation-modal').modal('show'); 
+   
+}
+
+
+function serviceId(sid){
+    var id=sid;
+    var serviceID=$('#service'+id).attr('data-userid');
+    $('#serviceid').val(serviceID); 
+   $('#header-footer-modal-preview3').modal('show'); 
    
 }
 

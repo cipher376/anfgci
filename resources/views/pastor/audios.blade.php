@@ -1,5 +1,6 @@
 <?php   use \App\Http\Controllers\PastorController; ?>
 @extends('layouts.pastor')
+@section('title','Audios')
 @section('content')
 
                 <!-- BEGIN: Top Bar -->
@@ -22,13 +23,15 @@
                             <div class="dropdown-box__content box bg-theme-38 text-white">
                                 <div class="p-4 border-b border-theme-40">
                                     <div class="font-medium"> {{ Auth::user()->name }}</div>
-                                    <div class="text-xs text-theme-41"> {{ Auth::user()->role }}</div>
+                                    <div class="text-xs text-theme-41"> <?php if(Auth::user()->role=="manage"){ echo"Super Admin"; }else if(Auth::user()->role=="manage-sub"){ echo"Admin";} ?></div>
                                 </div>
+                                <?php if(Auth::user()->role=="manage"){ ?>
                                 <div class="p-2">
                                     <a href="/manage/users/edit/{{Auth::user()->id}}" class="flex items-center block p-2 transition duration-300 ease-in-out hover:bg-theme-1 rounded-md"> <i data-feather="user" class="w-4 h-4 mr-2"></i> Profile </a>
                                     <a href="add_user" class="flex items-center block p-2 transition duration-300 ease-in-out hover:bg-theme-1 rounded-md"> <i data-feather="edit" class="w-4 h-4 mr-2"></i> Add Account </a>
                                     <a href="/manage/users/edit/{{Auth::user()->id}}" class="flex items-center block p-2 transition duration-300 ease-in-out hover:bg-theme-1 rounded-md"> <i data-feather="lock" class="w-4 h-4 mr-2"></i> Reset Password </a>
                                  </div>
+                                <?php }?>
                                 <div class="p-2 border-t border-theme-40">
                                 
                                     <a href="{{ route('logout') }}"
@@ -113,7 +116,7 @@
                                     
                                 </td>
                                 <td class="w-40 border-b">
-                                <div class="font-medium whitespace-no-wrap">{{$audio->title}}</div>
+                                <div class="font-medium whitespace-no-wrap">{{ substr($audio->title, 0,30) }}...</div>
         
                                     <div class="text-gray-600 text-xs whitespace-no-wrap">{{$audio->artist}}</div>
                                 </td>

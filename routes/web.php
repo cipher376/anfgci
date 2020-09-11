@@ -55,8 +55,16 @@ Route::get('/', function () {
 
 Auth::routes();
 
+Route::group(['middleware' => 'auth'], function () {
+
+    // All my routes that needs a logged in user
+
+
+    // All my routes that needs a logged in user
+
+
 Route::get('/pastor', 'PastorController@index')->name('pastor');
-Route::get('pastor/sermons', 'PastorController@sermons')->name('sermons');
+Route::get('pastor/sermons',  'PastorController@sermons')->name('sermons');
 Route::get('pastor/add_sermon', 'PastorController@add_sermons')->name('add_sermon');
 Route::post('pastor/add_sermon', 'PastorController@store_sermons')->name('add_sermon');
 Route::get('pastor/sermons/view/{sermon}', 'PastorController@show')->name('sermons.view');
@@ -242,7 +250,7 @@ Route::get('manage/my_books', 'ManageController@my_book')->name('my_book');
 Route::get('manage/my_audios', 'ManageController@my_audios')->name('my_audios');
 Route::get('manage/my_sermons', 'ManageController@my_sermons')->name('my_sermons');
 Route::get('manage/my_church', 'ManageController@my_church')->name('my_church');
-
+});
 ////////////////////////// API START HERE /////////////////////////////////////////////////////////
 
 //////////////////////// users object ////////////////////////////////////////////////////////////

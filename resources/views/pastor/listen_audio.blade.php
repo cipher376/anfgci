@@ -1,6 +1,7 @@
 <?php   use \App\Http\Controllers\PastorController; ?>
 <?php   use \App\Http\Controllers\ManageController; ?>
 @extends('layouts.pastor')
+@section('title','Now playing...')
 
 @section('content')
 
