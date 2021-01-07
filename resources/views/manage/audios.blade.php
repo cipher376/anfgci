@@ -114,7 +114,7 @@
                                     
                                 </td>
                                 <td class="w-40 border-b">
-                                <div class="font-medium whitespace-no-wrap">{{$audio->title}}</div>
+                                <div class="font-medium whitespace-no-wrap">{{ substr($audio->title, 0,30) }}...</div>
         
                                     <div class="text-gray-600 text-xs whitespace-no-wrap">{{$audio->artist}}</div>
                                 </td>
@@ -150,7 +150,7 @@
                                 <td class="border-b w-5" width="10%">
                                     <div class="flex sm:justify-center items-center">
                                      
-                                    <a href="/manage/audio/listen/{{$audio->audioID}}" style="padding-right:20px">   <i data-feather="play" class="w-4 h-4 mr-1"></i> </a>
+                                    <a href="/pastor/audio/listen/{{$audio->audioID}}" style="padding-right:20px">   <i data-feather="play" class="w-4 h-4 mr-1"></i> </a>
                                       
                                            
                                     <a class="flex items-center text-theme-6" id="deleteUser{{ $audio->audioID}}" data-userid="{{$audio->audioID}}" href="javascript:void(0)" onclick="showAlert({{ $audio->audioID}});" >  <i data-feather="trash-2" class="w-4 h-4 mr-1"></i> </a>
